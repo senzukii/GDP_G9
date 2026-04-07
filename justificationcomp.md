@@ -30,3 +30,11 @@ Ce document détaille les raisons justifiant la sélection de chaque capteur pou
 **Pourquoi pas un autre :** * **TCS3200 :** Produit une fréquence proportionnelle à l'intensité, ce qui est techniquement plus complexe à traiter que l'interface I2C.
 
 ---
+
+## 4. INA219 (Moniteur d'énergie)
+**Pourquoi celui-là :** * **Télémétrie :** Mesure la tension et le courant via I2C pour surveiller l'état des batteries 18650 en temps réel.
+* **Diagnostic :** Crucial pour identifier les baisses de tension lors des accélérations et alimenter les logs et diagnostics exigés.
+
+**Pourquoi pas un autre :** * **ACS712 :** Sortie analogique nécessitant un convertisseur externe, compliquant l'intégration sur une architecture numérique sans entrées analogiques natives.
+
+---
