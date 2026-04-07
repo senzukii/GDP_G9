@@ -14,3 +14,11 @@ Ce document détaille les raisons justifiant la sélection de chaque capteur pou
 
 ---
 
+## 2. Capteur Infrarouge (Suiveur de ligne)
+**Pourquoi celui-là :** * **Précision :** Indispensable pour reconnaître la ligne d'arrivée avec un arrêt immédiat et précis à moins de 5 cm.
+* **Réactivité :** Fournit un signal binaire instantané pour une détection de ligne en temps réel sans latence de traitement.
+
+**Pourquoi pas un autre :** * **Caméra OpenCV :** Trop gourmande en ressources processeur, risquant de ralentir la boucle de contrôle principale.
+* **Capteur de couleur :** Moins réactif que l'infrarouge spécifique pour le suivi de ligne à haute vitesse.
+
+---
