@@ -22,3 +22,11 @@ Ce document détaille les raisons justifiant la sélection de chaque capteur pou
 * **Capteur de couleur :** Moins réactif que l'infrarouge spécifique pour le suivi de ligne à haute vitesse.
 
 ---
+
+## 3. TCS3472 (Capteur de couleur RGB)
+**Pourquoi celui-là :** * **Automatisation :** Permet au module de détecter un signal de départ (comme un feu vert) pour un démarrage automatisé sans intervention humaine.
+* **Protocole :** Utilise le bus I2C (SDA/SCL), garantissant une lecture numérique stable et précise des composantes colorimétriques.
+
+**Pourquoi pas un autre :** * **TCS3200 :** Produit une fréquence proportionnelle à l'intensité, ce qui est techniquement plus complexe à traiter que l'interface I2C.
+
+---
