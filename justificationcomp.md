@@ -38,3 +38,17 @@ Ce document détaille les raisons justifiant la sélection de chaque capteur pou
 **Pourquoi pas un autre :** * **ACS712 :** Sortie analogique nécessitant un convertisseur externe, compliquant l'intégration sur une architecture numérique sans entrées analogiques natives.
 
 ---
+
+## Tableau Récapitulatif des Protocoles (US3 T4)
+
+| Capteur | Interface | Rôle Critique |
+| :--- | :--- | :--- |
+| **HC-SR04** | GPIO Digital | Évitement d'obstacles (seuil 10 cm) |
+| **Capteur IR** | GPIO Digital | Détection de la ligne d'arrivée |
+| **TCS3472** | I2C | Détection du signal de départ (Feu Vert) |
+| **INA219** | I2C | Surveillance batterie et diagnostics logs |
+
+---
+
+**Conclusion**
+Le choix de ces capteurs repose sur un équilibre entre fiabilité (I2C pour les données complexes) et simplicité (GPIO pour les détections binaires). Cette configuration permet de valider l'ensemble des critères d'acceptation, notamment l'évitement d'obstacles en moins de 15 secondes et l'arrêt précis sur la ligne d'arrivée.
