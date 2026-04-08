@@ -5,10 +5,14 @@ from app.model.capteurs.capteur_RGB import CapteurRGB
 class TestCapteurRGB(unittest.TestCase):
     
     def setUp(self):
-        patch('app.model.capteurs.capteur_RGB.board').start()
-        self.patcher = patch('app.model.capteurs.capteur_RGB.adafruit_tcs34725')
-        self.mock_adafruit = self.patcher.start()
-        self.addCleanup(patch.stopall)
+        self.patcher_board = patch('app.model.capteurs.capteur_RGB.board')
+        self.patcher_adafruit = patch('app.model.capteurs.capteur_RGB.adafruit_tcs34725')
+
+        self.patcher_board.start()
+        self.mock_adafruit = self.patcher_adafruit.start()
+
+        self.addCleanup(self.patcher_board.stop)
+        self.addCleanup(self.patcher_adafruit.stop)
         
         self.module_rgb = CapteurRGB(seuil=30)
         self.module_rgb.capteur = self.mock_adafruit.TCS34725.return_value
