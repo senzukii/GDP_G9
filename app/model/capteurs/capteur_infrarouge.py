@@ -1,5 +1,5 @@
 try:
-    from gpiozero import InputDevice
+    from gpiozero import InputDevice #type: ignore
 except ImportError:
     InputDevice = None  # sur PC pas de gpiozero
 

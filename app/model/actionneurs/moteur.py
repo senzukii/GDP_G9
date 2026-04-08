@@ -1,5 +1,5 @@
 try:
-    import Adafruit_PCA9685
+    import Adafruit_PCA9685 #type: ignore
 except ImportError:
     Adafruit_PCA9685 = None
 
