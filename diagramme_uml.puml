@@ -1,0 +1,84 @@
+@startuml GDP_G9_UML
+skinparam packageStyle rectangle
+skinparam classAttributeIconSize 0
+skinparam shadowing false
+
+package "app.model.actionneurs" {
+  class MoteurDC {
+    - vitesse: int
+    - etat: str
+    - moteur
+    + __init__(moteur=None)
+    + regler_vitesse(vitesse)
+    + avancer()
+    + reculer()
+    + arreter()
+  }
+
+  class Servomoteur {
+    - angle: int
+    - servo
+    + __init__(servo=None)
+    + tourner(angle)
+  }
+}
+
+package "app.model.capteurs" {
+  class CapteurInfrarouge {
+    - seuil: float
+    - capteur
+    + __init__(seuil=0.5, capteur=None)
+    + detecter(valeur=None)
+  }
+
+  class CapteurUltrason {
+    - sensor
+    - max_distance_cm: int
+    + __init__(sensor=None, max_distance_cm=100)
+    + lire_distance(distance_cm=None)
+  }
+}
+
+package "app.view" {
+  class Interface {
+    + afficher_etat(vitesse, obstacle_infrarouge, distance_cm)
+  }
+}
+
+package "app.controller" {
+  class Controleur {
+    - moteur: MoteurDC
+    - servo: Servomoteur
+    - capteur_ir: CapteurInfrarouge
+    - capteur_us: CapteurUltrason
+    - vue: Interface
+    + __init__(moteur=None, servo=None, capteur_ir=None, capteur_us=None, vue=None)
+    + mise_a_jour(valeur_ir, distance_cm)
+    + tourner(angle)
+  }
+}
+
+Controleur *-- MoteurDC
+Controleur *-- Servomoteur
+Controleur *-- CapteurInfrarouge
+Controleur *-- CapteurUltrason
+Controleur *-- Interface
+
+note right of MoteurDC
+  vitesse valide: 0..100
+  etat: stop | avant | arriere
+end note
+
+note right of Servomoteur
+  angle valide: 0..180
+end note
+
+note right of CapteurUltrason
+  distance_cm >= 0
+end note
+
+note right of CapteurInfrarouge
+  obstacle si valeur < seuil
+end note
+
+@enduml
