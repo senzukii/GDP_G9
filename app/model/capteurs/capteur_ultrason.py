@@ -1,5 +1,5 @@
 import time
-from gpiozero import DistanceSensor
+from gpiozero import DistanceSensor #type: ignore
 
 class HCSR04:
     MIN_DISTANCE = 10
