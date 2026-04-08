@@ -1,19 +1,26 @@
-import time
-from gpiozero import DistanceSensor #type: ignore
+try:
+    from gpiozero import DistanceSensor  # type: ignore
+except ImportError:
+    DistanceSensor = None
+
 
 class HCSR04:
     MIN_DISTANCE = 10
     MAX_DISTANCE = 200
 
-    def __init__(self, trigger_pin, echo_pin, N=5, offset=0.0): # on choisit offset ici si valeur décalée fixe
+    def __init__(self, trigger_pin=None, echo_pin=None, N=5, offset=0.0):
         self._trigger_pin = trigger_pin
         self._echo_pin = echo_pin
         self._N = N
         self._offset = offset
         self._recent_distances = []
         self._last_valid = None
-        self._sensor = DistanceSensor(echo=echo_pin, trigger=trigger_pin, max_distance=2) # mesure auto d = ( t * vitesse son ) / 2 
-                                                                                          # max_distance = 2 => (2 metres)
+        self._simulated_distance = 100.0
+        self._sensor = None
+
+        if trigger_pin is not None and echo_pin is not None and DistanceSensor is not None:
+            self._sensor = DistanceSensor(echo=echo_pin, trigger=trigger_pin, max_distance=2)
+
     @property
     def trigger_pin(self):
         return self._trigger_pin
@@ -47,25 +54,36 @@ class HCSR04:
         self._offset = value
 
     def _measure_pulse(self):
-        return self._sensor.distance * 100 # 2 * 100 = 200 cm
+        if self._sensor is not None:
+            return self._sensor.distance * 100
+        return self._simulated_distance
 
     def _is_outlier(self, value):
-        return value < self.MIN_DISTANCE or value > self.MAX_DISTANCE 
+        return value < self.MIN_DISTANCE or value > self.MAX_DISTANCE
 
     def measure(self):
         raw = self._measure_pulse() - self._offset
 
-        if self._is_outlier(raw): # si + grand que 200 ou + petit que 10, ca remplace par derniere mesure valide
-            if self._last_valid is None: 
+        if self._is_outlier(raw):
+            if self._last_valid is None:
                 return None
             raw = self._last_valid
 
         self._last_valid = raw
         self._recent_distances.append(raw)
         if len(self._recent_distances) > self._N:
-            self._recent_distances = self._recent_distances[-self._N:] #Si [1,2,3,4,5,6,7] => [3,4,5,6,7] car N = 5
+            self._recent_distances = self._recent_distances[-self._N:]
 
-        return round(sum(self._recent_distances) / len(self._recent_distances), 2) # moyenne mobile
+        return round(sum(self._recent_distances) / len(self._recent_distances), 2)
+
+    def lire_distance(self, distance_cm=None):
+        if distance_cm is not None:
+            if not isinstance(distance_cm, (int, float)):
+                raise TypeError("distance invalide")
+            if distance_cm < 0:
+                raise ValueError("distance invalide")
+            return distance_cm
+        return self.measure()
 
     def get_obstacle_status(self, threshold_cm=15.0):
         distance = self.measure()
@@ -86,19 +104,11 @@ class HCSR04:
         dist_right = right_sensor.measure() or 0
 
         if dist_left >= dist_right:
-            if dist_left > threshold_cm * 2:
-                angle = -30 
-            else:
-                angle = -15
-
+            angle = -30 if dist_left > threshold_cm * 2 else -15
             return "left", angle
-        else:
-            if dist_right > threshold_cm * 2:
-                angle = 30 
-            else:
-                angle = 15
 
-            return "right", angle
+        angle = 30 if dist_right > threshold_cm * 2 else 15
+        return "right", angle
 
     def scan(self, sensors):
         result = {}
@@ -109,4 +119,5 @@ class HCSR04:
         return result
 
     def cleanup(self):
-        self._sensor.close()
+        if self._sensor is not None:
+            self._sensor.close()

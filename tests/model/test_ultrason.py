@@ -63,6 +63,7 @@ class TestHCSR04(unittest.TestCase):
         self.assertEqual(result, {"left": 60.0, "right": 80.0})
 
     def test_cleanup(self):
+        self.s._sensor = MagicMock()
         self.s.cleanup()
         self.s._sensor.close.assert_called_once()
 
