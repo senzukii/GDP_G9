@@ -6,9 +6,12 @@ except ImportError:
 
 class CapteurInfrarouge:
 
-    def __init__(self, pin: int = 20):
+    def __init__(self, pin: int = 20, seuil: float = 0.5, capteur=None):
         self._pin = pin
+        self._seuil = 0.5
         self._capteur = None
+        self.seuil = seuil
+        self.capteur = capteur
 
     # ── Getters / Setters 
 
@@ -31,6 +34,16 @@ class CapteurInfrarouge:
     @capteur.setter
     def capteur(self, valeur):
         self._capteur = valeur
+
+    @property
+    def seuil(self):
+        return self._seuil
+
+    @seuil.setter
+    def seuil(self, valeur):
+        if not isinstance(valeur, (int, float)):
+            raise TypeError("seuil invalide")
+        self._seuil = float(valeur)
 
     # ── Méthodes ─────────────────────────────────────────────────────────────
 
@@ -70,20 +83,26 @@ class CapteurInfrarouge:
             raise ValueError(f"Valeur invalide reçue : {valeur}")
         return valeur == 0
 
-    def detecter(self, valeur=None, seuil: float = 0.5) -> bool:
+    def detecter(self, valeur=None, seuil: float = None) -> bool:
         """
         Détecte un obstacle/ligne noire.
 
         - Sans argument, utilise la lecture matérielle (0/1).
         - Avec argument, accepte une valeur simulée (int/float/bool).
         """
+        seuil_actif = self._seuil if seuil is None else seuil
+        if not isinstance(seuil_actif, (int, float)):
+            raise TypeError("seuil invalide")
+
         if valeur is None:
-            return self.ligne_detectee()
+            if self._capteur is None:
+                raise TypeError("valeur invalide")
+            valeur = self._capteur.value
 
         if isinstance(valeur, bool):
             return valeur
 
         if not isinstance(valeur, (int, float)):
-            raise TypeError("La valeur IR doit être un nombre ou un booléen")
+            raise TypeError("valeur invalide")
 
-        return valeur < seuil
+        return valeur < float(seuil_actif)
