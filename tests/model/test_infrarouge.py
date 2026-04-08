@@ -1,70 +1,74 @@
-"""
-Module : test_infrarouge.py
-Description : Tests unitaires du capteur infrarouge LINE FOLLOWER.
-              Utilise des mocks pour simuler le matériel sans Raspberry Pi.
-"""
-
 import unittest
-from unittest.mock import Mock
-from app.model.capteurs.capteur_infrarouge import CapteurInfrarouge
+from unittest.mock import MagicMock, patch
+from capteur_infrarouge import CapteurInfrarouge
+
 
 class TestCapteurInfrarouge(unittest.TestCase):
 
-    # TEST 1 : le capteur détecte une ligne noire
-    def test_ligne_detectee(self):
-        capteur = CapteurInfrarouge(pin=20)
-        capteur.lire = Mock(return_value=0)
+    def setUp(self):
+        """Capteur avec un InputDevice mocké."""
+        self.capteur = CapteurInfrarouge(pin=20)
+        self.capteur._capteur = MagicMock()
 
-        self.assertTrue(capteur.ligne_detectee())
+    # Détection de ligne 
+    
+    def test_ligne_noire_detectee(self):
+        """Le capteur renvoie 0 → ligne noire détectée."""
+        self.capteur._capteur.value = 0
+        self.assertTrue(self.capteur.ligne_detectee())
 
-    # TEST 2 : le capteur ne détecte rien
-    def test_pas_de_ligne(self):
-        capteur = CapteurInfrarouge(pin=20)
-        capteur.lire = Mock(return_value=1)
+    def test_aucune_ligne_detectee(self):
+        """Le capteur renvoie 1 → aucune ligne détectée."""
+        self.capteur._capteur.value = 1
+        self.assertFalse(self.capteur.ligne_detectee())
 
-        self.assertFalse(capteur.ligne_detectee())
+    # Vérification appel de lire()
 
-    # TEST 3 : on vérifie que lire() est bien appelé
     def test_lire_est_appele(self):
-        capteur = CapteurInfrarouge(pin=20)
-        capteur.lire = Mock(return_value=0)
+        """Vérifie que lire() est bien appelé par ligne_detectee()."""
+        with patch.object(self.capteur, "lire", return_value=0) as mock_lire:
+            self.capteur.ligne_detectee()
+            mock_lire.assert_called_once()
 
-        capteur.ligne_detectee()
+    #  Simulation de panne
 
-        capteur.lire.assert_called_once()
+    def test_panne_capteur(self):
+        """Simule une panne matérielle lors de la lecture."""
+        with patch.object(self.capteur, "lire", side_effect=Exception("Panne")):
+            with self.assertRaises(Exception):
+                self.capteur.lire()
 
-    # TEST 4 : simuler une panne GPIO
-    def test_panne_gpio(self):
-        capteur = CapteurInfrarouge(pin=20)
-        capteur.lire = Mock(side_effect=RuntimeError("GPIO error"))
+    def test_capteur_non_initialise(self):
+        """Lire sans appeler setup() lève une AttributeError."""
+        c = CapteurInfrarouge(pin=20)  # _capteur vaut None
+        with self.assertRaises(AttributeError):
+            c.lire()
 
-        with self.assertRaises(RuntimeError):
-            capteur.ligne_detectee()
+    #  Valeurs limites 
 
-    # TEST 5 : séquence de valeurs
-    def test_sequence_approche_ligne(self):
-        capteur = CapteurInfrarouge(pin=20)
-        capteur.lire = Mock(side_effect=[1, 1, 0])
+    def test_valeur_dans_range(self):
+        """Valeurs valides (0 et 1) ne lèvent pas d'exception."""
+        for valeur in [0, 1]:
+            with self.subTest(valeur=valeur):
+                self.capteur._capteur.value = valeur
+                self.assertEqual(self.capteur.lire(), valeur)
 
-        self.assertFalse(capteur.ligne_detectee())
-        self.assertFalse(capteur.ligne_detectee())
-        self.assertTrue(capteur.ligne_detectee())
-
-    # TEST 6 : valeur 2 → hors range → erreur
     def test_valeur_hors_range(self):
-        capteur = CapteurInfrarouge(pin=20)
-        capteur.lire = Mock(return_value=2)
+        """Valeurs hors range [0, 1] lèvent une ValueError."""
+        for valeur in [-1, 2, 255]:
+            with self.subTest(valeur=valeur):
+                self.capteur._capteur.value = valeur
+                with self.assertRaisesRegex(ValueError, "Valeur invalide reçue"):
+                    self.capteur.ligne_detectee()
 
-        with self.assertRaises(ValueError):
-            capteur.ligne_detectee()
-
-    # TEST 7 : valeur absurde → erreur
     def test_valeur_absurde(self):
-        capteur = CapteurInfrarouge(pin=20)
-        capteur.lire = Mock(return_value="abc")
+        """Valeurs absurdes (None, str, float…) lèvent une TypeError ou ValueError."""
+        for valeur in [None, "abc", 3.14, [], {}]:
+            with self.subTest(valeur=valeur):
+                self.capteur._capteur.value = valeur
+                with self.assertRaises((TypeError, ValueError)):
+                    self.capteur.ligne_detectee()
 
-        with self.assertRaises(ValueError):
-            capteur.ligne_detectee()
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     unittest.main()
