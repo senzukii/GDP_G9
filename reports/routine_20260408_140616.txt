@@ -1,0 +1,36 @@
+Rapport routine - 2026-04-08 14:06:16
+============================================================
+
+14:06:10 | INFO | Démarrage test moteur
+14:06:10 | DEBUG | Réglage vitesse à 50%
+14:06:10 | DEBUG | Vitesse actuelle : 50%
+14:06:10 | DEBUG | État moteur : avant
+14:06:12 | DEBUG | État moteur : arriere
+14:06:14 | DEBUG | État moteur : stop, vitesse : 0%
+14:06:14 | OK | Test moteur réussi
+14:06:14 | INFO | Démarrage test servomoteur
+14:06:14 | DEBUG | Angle servo : 45°
+14:06:15 | DEBUG | Angle servo : 135°
+14:06:16 | DEBUG | Angle servo : 90°
+14:06:16 | OK | Test servomoteur réussi
+14:06:16 | INFO | Démarrage test capteur IR
+14:06:16 | DEBUG | Seuil IR configuré : 0.5
+14:06:16 | DEBUG | Moteur démarré à 30%, en attente de détection...
+14:06:16 | ERREUR | Capteur IR : capteur non connecte
+14:06:16 | INFO | Démarrage test capteurs ultrason
+14:06:16 | ERREUR | Ultrason AVANT : capteur non connecte
+14:06:16 | ERREUR | Ultrason GAUCHE : capteur non connecte
+14:06:16 | ERREUR | Ultrason DROIT : capteur non connecte
+14:06:16 | INFO | Démarrage test capteur RGB
+14:06:16 | ERREUR | Démarrage Vert : capteur non connecte
+
+============================================================
+RÉSUMÉ
+============================================================
+  Moteur : OK
+  Servomoteur : OK
+  Capteur IR : ERREUR
+  Capteurs Ultrason : OK
+  Démarrage Vert : ERREUR
+
+État global : NON PRÊT

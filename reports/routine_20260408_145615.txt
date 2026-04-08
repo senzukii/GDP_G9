@@ -1,0 +1,36 @@
+Rapport routine - 2026-04-08 14:56:15
+============================================================
+
+14:56:09 | INFO | Démarrage test moteur
+14:56:09 | DEBUG | Réglage vitesse à 50%
+14:56:09 | DEBUG | Vitesse actuelle : 50%
+14:56:09 | DEBUG | État moteur : avant
+14:56:11 | DEBUG | État moteur : arriere
+14:56:13 | DEBUG | État moteur : stop, vitesse : 0%
+14:56:13 | OK | Test moteur réussi
+14:56:13 | INFO | Démarrage test servomoteur
+14:56:13 | DEBUG | Angle servo : 45°
+14:56:14 | DEBUG | Angle servo : 135°
+14:56:15 | DEBUG | Angle servo : 90°
+14:56:15 | OK | Test servomoteur réussi
+14:56:15 | INFO | Démarrage test capteur IR
+14:56:15 | DEBUG | Seuil IR configuré : 0.5
+14:56:15 | DEBUG | Moteur démarré à 30%, en attente de détection...
+14:56:15 | ERREUR | Capteur IR : valeur invalide
+14:56:15 | INFO | Démarrage test capteurs ultrason
+14:56:15 | ERREUR | Ultrason AVANT : 'NoneType' object has no attribute 'measure'
+14:56:15 | ERREUR | Ultrason GAUCHE : 'NoneType' object has no attribute 'measure'
+14:56:15 | ERREUR | Ultrason DROIT : 'NoneType' object has no attribute 'measure'
+14:56:15 | INFO | Démarrage test capteur RGB
+14:56:15 | ERREUR | Démarrage Vert : 'CapteurRGB' object has no attribute 'detecter_vert'
+
+============================================================
+RÉSUMÉ
+============================================================
+  Moteur : OK
+  Servomoteur : OK
+  Capteur IR : ERREUR
+  Capteurs Ultrason : OK
+  Démarrage Vert : ERREUR
+
+État global : NON PRÊT
