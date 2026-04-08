@@ -4,6 +4,13 @@ import time
 #pas oublier que capteurs ultra-sons fonctionnent avec 5 V et faut max 3,3 V !!
 
 class HCSR04:
+    """
+        SIMULATION du Module HCSR04 - Capteur ultrasonique HC-SR04
+
+        Gère la lecture de distance via gpiozero sur Raspberry Pi.
+        Applique une moyenne mobile sur les N dernières mesures pour lisser le bruit,
+        et ignore les valeurs hors limites (< 10 cm ou > 200 cm).
+    """
     MIN_DISTANCE = 10
     MAX_DISTANCE = 200
 
