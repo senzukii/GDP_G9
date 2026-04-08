@@ -193,7 +193,7 @@ class Routine:
         self._log("INFO", "Démarrage test capteurs ultrason")
 
         try:
-            d_avant = ctrl.capteur_us_avant.lire_distance()
+            d_avant = ctrl.capteur_us_avant.measure()
             self._log("OK", f"Ultrason AVANT : {d_avant:.1f} cm")
             print(f"Ultrason AVANT  : {d_avant:.1f} cm")
         except Exception as e:
@@ -201,7 +201,7 @@ class Routine:
             print(f"Ultrason AVANT  : ERREUR ({e})")
 
         try:
-            d_gauche = ctrl.capteur_us_gauche.lire_distance()
+            d_gauche = ctrl.capteur_us_gauche.measure()
             self._log("OK", f"Ultrason GAUCHE : {d_gauche:.1f} cm")
             print(f"Ultrason GAUCHE : {d_gauche:.1f} cm")
         except Exception as e:
@@ -209,7 +209,7 @@ class Routine:
             print(f"Ultrason GAUCHE : ERREUR ({e})")
 
         try:
-            d_droit = ctrl.capteur_us_droit.lire_distance()
+            d_droit = ctrl.capteur_us_droit.measure()
             self._log("OK", f"Ultrason DROIT : {d_droit:.1f} cm")
             print(f"Ultrason DROIT  : {d_droit:.1f} cm")
         except Exception as e:
