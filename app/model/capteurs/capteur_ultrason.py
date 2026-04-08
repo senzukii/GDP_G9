@@ -17,7 +17,10 @@ Utilisation :
 """
 
 import time
-from gpiozero import DistanceSensor # type: ignore
+try:
+    from gpiozero import DistanceSensor  # type: ignore
+except ImportError:
+    DistanceSensor = None
 
 class HCSR04:
     MIN_DISTANCE = 10
@@ -30,8 +33,10 @@ class HCSR04:
         self._offset = offset
         self._recent_distances = []
         self._last_valid = None
-        self._sensor = DistanceSensor(echo=echo_pin, trigger=trigger_pin, max_distance=2) # mesure auto d = ( t * vitesse son ) / 2 
-                                                                                          # max_distance = 2 => (2 metres)
+        if DistanceSensor is not None:
+            self._sensor = DistanceSensor(echo=echo_pin, trigger=trigger_pin, max_distance=2)
+        else:
+            self._sensor = None
     @property
     def trigger_pin(self):
         return self._trigger_pin
@@ -65,6 +70,8 @@ class HCSR04:
         self._offset = value
 
     def _measure_pulse(self):
+        if self._sensor is None:
+            raise RuntimeError("DistanceSensor indisponible")
         return self._sensor.distance * 100 # 2 * 100 = 200 cm
 
     def _is_outlier(self, value):
@@ -127,4 +134,5 @@ class HCSR04:
         return result
 
     def cleanup(self):
-        self._sensor.close()
+        if self._sensor is not None:
+            self._sensor.close()
