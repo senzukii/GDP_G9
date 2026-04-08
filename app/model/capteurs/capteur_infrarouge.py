@@ -69,3 +69,21 @@ class CapteurInfrarouge:
         if valeur not in [0, 1]:
             raise ValueError(f"Valeur invalide reçue : {valeur}")
         return valeur == 0
+
+    def detecter(self, valeur=None, seuil: float = 0.5) -> bool:
+        """
+        Détecte un obstacle/ligne noire.
+
+        - Sans argument, utilise la lecture matérielle (0/1).
+        - Avec argument, accepte une valeur simulée (int/float/bool).
+        """
+        if valeur is None:
+            return self.ligne_detectee()
+
+        if isinstance(valeur, bool):
+            return valeur
+
+        if not isinstance(valeur, (int, float)):
+            raise TypeError("La valeur IR doit être un nombre ou un booléen")
+
+        return valeur < seuil

@@ -1,6 +1,6 @@
 import unittest
 from unittest.mock import MagicMock, patch
-from capteur_infrarouge import CapteurInfrarouge
+from app.model.capteurs.capteur_infrarouge import CapteurInfrarouge
 
 
 class TestCapteurInfrarouge(unittest.TestCase):
@@ -68,6 +68,11 @@ class TestCapteurInfrarouge(unittest.TestCase):
                 self.capteur._capteur.value = valeur
                 with self.assertRaises((TypeError, ValueError)):
                     self.capteur.ligne_detectee()
+
+    def test_detecter_avec_valeur_simulee(self):
+        """Compatibilité avec le contrôleur: seuil sur valeur simulée."""
+        self.assertTrue(self.capteur.detecter(0.1))
+        self.assertFalse(self.capteur.detecter(0.9))
 
 
 if __name__ == "__main__":
