@@ -1,3 +1,9 @@
+"""
+Module : test_infrarouge.py
+Description : Tests unitaires du capteur infrarouge LINE FOLLOWER.
+              Utilise des mocks pour simuler le matériel sans Raspberry Pi.
+"""
+
 import unittest
 from unittest.mock import Mock
 from app.model.capteurs.capteur_infrarouge import CapteurInfrarouge
@@ -40,9 +46,9 @@ class TestCapteurInfrarouge(unittest.TestCase):
         capteur = CapteurInfrarouge(pin=20)
         capteur.lire = Mock(side_effect=[1, 1, 0])
 
-        self.assertFalse(capteur.ligne_detectee())  # loin
-        self.assertFalse(capteur.ligne_detectee())  # encore loin
-        self.assertTrue(capteur.ligne_detectee())   # ligne !
+        self.assertFalse(capteur.ligne_detectee())
+        self.assertFalse(capteur.ligne_detectee())
+        self.assertTrue(capteur.ligne_detectee())
 
     # TEST 6 : valeur 2 → hors range → erreur
     def test_valeur_hors_range(self):
@@ -59,6 +65,6 @@ class TestCapteurInfrarouge(unittest.TestCase):
 
         with self.assertRaises(ValueError):
             capteur.ligne_detectee()
-            
+
 if __name__ == '__main__':
     unittest.main()
