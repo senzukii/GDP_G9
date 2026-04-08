@@ -7,6 +7,7 @@ sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")
 
 from app.controller.controleur import Controleur
 from app.model.capteurs.capteur_ultrason import HCSR04
+from app.model.actionneurs.moteur import MoteurDC
 
 # === CÂBLAGE GPIO ===
 # Capteur IR : GPIO 20
@@ -17,10 +18,10 @@ from app.model.capteurs.capteur_ultrason import HCSR04
 # Servomoteur : PCA9685 I2C (canal 0 par défaut)
 # Moteur DC - ENA : PCA9685 canal 5
 # Moteur DC - ENB : PCA9685 canal 4
-# Moteur DC - IN1 : GPIO TODO  <-- à compléter
-# Moteur DC - IN2 : GPIO TODO  <-- à compléter
-# Moteur DC - IN3 : GPIO TODO  <-- à compléter
-# Moteur DC - IN4 : GPIO TODO  <-- à compléter
+# Moteur DC - IN1 : GPIO 19
+# Moteur DC - IN2 : GPIO 18
+# Moteur DC - IN3 : GPIO 17
+# Moteur DC - IN4 : GPIO 16
 
 
 class Routine:
@@ -32,11 +33,20 @@ class Routine:
         self._init_logger()
 
     def _initialiser_materiel_concret(self):
-        """Prépare les capteurs réels utilisés par la routine."""
+        """Prépare les capteurs et moteurs réels utilisés par la routine."""
         ctrl = self.__controleur
 
         self._initialiser_capteur_infrarouge(ctrl)
         self._initialiser_capteurs_ultrason(ctrl)
+        self._initialiser_moteur_physique(ctrl)
+
+    def _initialiser_moteur_physique(self, ctrl):
+        """Injecte les bonnes broches directionnelles et PWM dans le moteur."""
+        # On recrée l'instance pour s'assurer que le câblage correspond au schéma
+        ctrl.moteur = MoteurDC(
+            canal=[5, 4],                        # ENA et ENB
+            pins_direction=[19, 18, 17, 16]      # IN1, IN2, IN3, IN4
+        )
 
     def _initialiser_capteur_infrarouge(self, ctrl):
         if ctrl.capteur_ir is None:
@@ -55,11 +65,11 @@ class Routine:
 
     def _initialiser_capteurs_ultrason(self, ctrl):
         if ctrl.capteur_us_avant is None:
-            ctrl.set_capteur_us_avant(self._creer_capteur_ultrason(11, 9))
+            ctrl.set_capteur_us_avant(self._creer_capteur_ultrason(6, 5)) 
         if ctrl.capteur_us_gauche is None:
-            ctrl.set_capteur_us_gauche(self._creer_capteur_ultrason(6, 5))
+            ctrl.set_capteur_us_gauche(self._creer_capteur_ultrason(11, 9)) 
         if ctrl.capteur_us_droit is None:
-            ctrl.set_capteur_us_droit(self._creer_capteur_ultrason(26, 19))
+            ctrl.set_capteur_us_droit(self._creer_capteur_ultrason(26, 19)) 
 
     def _fermer_capteurs_ultrason(self):
         for capteur in (
