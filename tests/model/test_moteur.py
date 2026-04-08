@@ -54,10 +54,22 @@ class TestMoteurDC(unittest.TestCase):
 
         self.assertEqual(self.moteur_mock.vitesse, 60)
         self.assertEqual(self.moteur_mock.etat, "stop")
-        self.driver.set_speed.assert_called_once_with(60)
+        self.assertGreaterEqual(self.driver.set_speed.call_count, 1)
+        self.assertEqual(self.driver.set_speed.call_args_list[0].args, (60,))
         self.driver.forward.assert_called_once()
         self.driver.backward.assert_called_once()
         self.driver.stop.assert_called_once()
+
+    def test_rampe_depart_avec_driver_simule(self):
+        self.moteur_mock.regler_vitesse(25)
+        self.driver.reset_mock()
+
+        self.moteur_mock.avancer()
+
+        self.assertGreaterEqual(self.driver.set_speed.call_count, 3)
+        self.assertEqual(self.driver.set_speed.call_args_list[0].args, (15,))
+        self.assertEqual(self.driver.set_speed.call_args_list[-1].args, (25,))
+        self.driver.forward.assert_called_once()
 
     def test_moteur_avec_pwm(self):
         pwm = Mock()
@@ -66,6 +78,19 @@ class TestMoteurDC(unittest.TestCase):
         moteur_pwm.regler_vitesse(25)
 
         pwm.set_pwm.assert_called_once_with(3, 0, 1023)
+
+    def test_rampe_depart_avec_pwm(self):
+        pwm = Mock()
+        moteur_pwm = MoteurDC(pwm=pwm, canal=3)
+
+        moteur_pwm.regler_vitesse(25)
+        pwm.reset_mock()
+
+        moteur_pwm.avancer()
+
+        self.assertGreaterEqual(pwm.set_pwm.call_count, 3)
+        self.assertEqual(pwm.set_pwm.call_args_list[0].args, (3, 0, 614))
+        self.assertEqual(pwm.set_pwm.call_args_list[-1].args, (3, 0, 1023))
 
 
 if __name__ == "__main__":

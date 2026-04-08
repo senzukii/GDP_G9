@@ -20,6 +20,9 @@ class MoteurDC:
         self._moteur = moteur
         self._canal = canal
         self._pwm = pwm
+        self._rampe_depart_min = 15
+        self._rampe_pas = 5
+        self._rampe_palier = 5
 
         if self._moteur is None and self._pwm is None and Adafruit_PCA9685:
             self._pwm = Adafruit_PCA9685.PCA9685(address=adresse_i2c)
@@ -93,6 +96,24 @@ class MoteurDC:
             duty_cycle = int((vitesse / 100.0) * 4095)
             self._pwm.set_pwm(self._canal, 0, duty_cycle)
 
+    def _rampe_s(self, vitesse_cible):
+        """Monte progressivement en vitesse pour éviter le patinage au démarrage."""
+        if vitesse_cible <= 0:
+            self._appliquer_vitesse_driver(0)
+            return
+
+        vitesse_depart = min(self._rampe_depart_min, vitesse_cible)
+        progression = list(range(vitesse_depart, vitesse_cible + 1, self._rampe_pas))
+
+        if not progression or progression[-1] != vitesse_cible:
+            progression.append(vitesse_cible)
+
+        for _ in range(self._rampe_palier):
+            self._appliquer_vitesse_driver(vitesse_depart)
+
+        for vitesse in progression[1:]:
+            self._appliquer_vitesse_driver(vitesse)
+
     def regler_vitesse(self, vitesse):
         self.set_vitesse(vitesse)
 
@@ -104,11 +125,13 @@ class MoteurDC:
 
     def avancer(self):
         self.set_etat("avant")
+        self._rampe_s(self._vitesse)
         if self._moteur is not None and hasattr(self._moteur, "forward"):
             self._moteur.forward()
 
     def reculer(self):
         self.set_etat("arriere")
+        self._rampe_s(self._vitesse)
         if self._moteur is not None and hasattr(self._moteur, "backward"):
             self._moteur.backward()
 
