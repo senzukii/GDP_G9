@@ -18,7 +18,12 @@ class CapteurRGB:
     def lire_rgb(self):
         """Retourne (R, G, B) ou (0, 0, 0) si erreur."""
         #.color_rgb_bytes est une propriété de la bibliothèque adafruit qui retourne les valeurs RGB
-        return self.capteur.color_rgb_bytes if self.capteur else (0, 0, 0)
+        if not self.capteur:
+            return (0, 0, 0)
+        try:
+            return self.capteur.color_rgb_bytes
+        except Exception:
+            return (0, 0, 0)
 
     def est_vert(self):
         """Vrai si le Vert domine largement le Rouge et le Bleu."""
