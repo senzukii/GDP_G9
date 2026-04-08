@@ -22,6 +22,16 @@ class TestControleur(unittest.TestCase):
         self.assertEqual(controleur.moteur.etat, "avant")
         self.assertIn("Obstacle IR: non", message)
 
+    def test_avance_au_seuil(self):
+        controleur = Controleur()
+        controleur.moteur.regler_vitesse(50)
+
+        message = controleur.mise_a_jour(0.5, 20)
+
+        self.assertEqual(controleur.moteur.etat, "avant")
+        self.assertIn("Obstacle IR: non", message)
+        self.assertIn("Distance: 20 cm", message)
+
     def test_tourner(self):
         controleur = Controleur()
         controleur.tourner(120)
