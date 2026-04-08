@@ -2,7 +2,7 @@ from app.model.actionneurs.moteur import MoteurDC
 from app.model.actionneurs.servomoteur import Servomoteur
 from app.model.capteurs.capteur_infrarouge import CapteurInfrarouge
 from app.model.capteurs.capteur_ultrason import HCSR04
-from app.model.capteurs.capteur_rgb import CapteurRGB
+from app.model.capteurs.capteur_RGB import CapteurRGB
 from app.view.interface import Interface
 
 

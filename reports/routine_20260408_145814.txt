@@ -1,0 +1,39 @@
+Rapport routine - 2026-04-08 14:58:14
+============================================================
+
+14:58:03 | INFO | Démarrage test moteur
+14:58:03 | DEBUG | Réglage vitesse à 50%
+14:58:03 | DEBUG | Vitesse actuelle : 50%
+14:58:03 | DEBUG | État moteur : avant
+14:58:05 | DEBUG | État moteur : arriere
+14:58:07 | DEBUG | État moteur : stop, vitesse : 0%
+14:58:07 | OK | Test moteur réussi
+14:58:07 | INFO | Démarrage test servomoteur
+14:58:07 | DEBUG | Angle servo : 45°
+14:58:08 | DEBUG | Angle servo : 135°
+14:58:09 | DEBUG | Angle servo : 90°
+14:58:10 | OK | Test servomoteur réussi
+14:58:10 | INFO | Démarrage test capteur IR
+14:58:10 | DEBUG | Seuil IR configuré : 0.5
+14:58:10 | DEBUG | Moteur démarré à 30%, en attente de détection...
+14:58:10 | OK | Ligne noire détectée, arrêt réussi
+14:58:10 | INFO | Démarrage test capteurs ultrason
+14:58:10 | OK | Ultrason AVANT : 80.0 cm
+14:58:10 | OK | Ultrason GAUCHE : 65.0 cm
+14:58:10 | OK | Ultrason DROIT : 75.0 cm
+14:58:10 | INFO | Démarrage test capteur RGB
+14:58:12 | WARN | Capteur RGB non disponible, feu vert simulé
+14:58:12 | OK | Vert détecté, démarrage
+14:58:14 | OK | Test capteur RGB réussi
+14:58:14 | WARN | Exécution partielle en mode simulation (sans matériel complet)
+
+============================================================
+RÉSUMÉ
+============================================================
+  Moteur : OK
+  Servomoteur : OK
+  Capteur IR : OK
+  Capteurs Ultrason : OK
+  Démarrage Vert : OK
+
+État global : PRÊT

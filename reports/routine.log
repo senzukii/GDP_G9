@@ -41,3 +41,52 @@
 2026-04-08 14:06:16,747 | INFO     | Démarrage test capteur RGB
 2026-04-08 14:06:16,747 | ERROR    | Démarrage Vert : capteur non connecte
 2026-04-08 14:06:16,752 | INFO     | Rapport enregistré : c:\Users\noahs\Documents\GitHub\GDP_G9\reports\routine_20260408_140616.txt
+2026-04-08 14:56:09,371 | INFO     | Démarrage test moteur
+2026-04-08 14:56:09,372 | DEBUG    | Réglage vitesse à 50%
+2026-04-08 14:56:09,372 | DEBUG    | Vitesse actuelle : 50%
+2026-04-08 14:56:09,372 | DEBUG    | État moteur : avant
+2026-04-08 14:56:11,373 | DEBUG    | État moteur : arriere
+2026-04-08 14:56:13,374 | DEBUG    | État moteur : stop, vitesse : 0%
+2026-04-08 14:56:13,374 | INFO     | Test moteur réussi
+2026-04-08 14:56:13,376 | INFO     | Démarrage test servomoteur
+2026-04-08 14:56:13,377 | DEBUG    | Angle servo : 45°
+2026-04-08 14:56:14,379 | DEBUG    | Angle servo : 135°
+2026-04-08 14:56:15,383 | DEBUG    | Angle servo : 90°
+2026-04-08 14:56:15,883 | INFO     | Test servomoteur réussi
+2026-04-08 14:56:15,886 | INFO     | Démarrage test capteur IR
+2026-04-08 14:56:15,886 | DEBUG    | Seuil IR configuré : 0.5
+2026-04-08 14:56:15,887 | DEBUG    | Moteur démarré à 30%, en attente de détection...
+2026-04-08 14:56:15,887 | ERROR    | Capteur IR : valeur invalide
+2026-04-08 14:56:15,888 | INFO     | Démarrage test capteurs ultrason
+2026-04-08 14:56:15,888 | ERROR    | Ultrason AVANT : 'NoneType' object has no attribute 'measure'
+2026-04-08 14:56:15,889 | ERROR    | Ultrason GAUCHE : 'NoneType' object has no attribute 'measure'
+2026-04-08 14:56:15,890 | ERROR    | Ultrason DROIT : 'NoneType' object has no attribute 'measure'
+2026-04-08 14:56:15,891 | INFO     | Démarrage test capteur RGB
+2026-04-08 14:56:15,891 | ERROR    | Démarrage Vert : 'CapteurRGB' object has no attribute 'detecter_vert'
+2026-04-08 14:56:15,896 | INFO     | Rapport enregistré : C:\HEH\BAC 2\GDPG9\GDP_G9\reports\routine_20260408_145615.txt
+2026-04-08 14:58:03,842 | INFO     | Démarrage test moteur
+2026-04-08 14:58:03,842 | DEBUG    | Réglage vitesse à 50%
+2026-04-08 14:58:03,842 | DEBUG    | Vitesse actuelle : 50%
+2026-04-08 14:58:03,842 | DEBUG    | État moteur : avant
+2026-04-08 14:58:05,844 | DEBUG    | État moteur : arriere
+2026-04-08 14:58:07,845 | DEBUG    | État moteur : stop, vitesse : 0%
+2026-04-08 14:58:07,845 | INFO     | Test moteur réussi
+2026-04-08 14:58:07,845 | INFO     | Démarrage test servomoteur
+2026-04-08 14:58:07,846 | DEBUG    | Angle servo : 45°
+2026-04-08 14:58:08,846 | DEBUG    | Angle servo : 135°
+2026-04-08 14:58:09,847 | DEBUG    | Angle servo : 90°
+2026-04-08 14:58:10,348 | INFO     | Test servomoteur réussi
+2026-04-08 14:58:10,348 | INFO     | Démarrage test capteur IR
+2026-04-08 14:58:10,349 | DEBUG    | Seuil IR configuré : 0.5
+2026-04-08 14:58:10,349 | DEBUG    | Moteur démarré à 30%, en attente de détection...
+2026-04-08 14:58:10,803 | INFO     | Ligne noire détectée, arrêt réussi
+2026-04-08 14:58:10,803 | INFO     | Démarrage test capteurs ultrason
+2026-04-08 14:58:10,804 | INFO     | Ultrason AVANT : 80.0 cm
+2026-04-08 14:58:10,804 | INFO     | Ultrason GAUCHE : 65.0 cm
+2026-04-08 14:58:10,804 | INFO     | Ultrason DROIT : 75.0 cm
+2026-04-08 14:58:10,804 | INFO     | Démarrage test capteur RGB
+2026-04-08 14:58:12,312 | WARNING  | Capteur RGB non disponible, feu vert simulé
+2026-04-08 14:58:12,312 | INFO     | Vert détecté, démarrage
+2026-04-08 14:58:14,314 | INFO     | Test capteur RGB réussi
+2026-04-08 14:58:14,319 | WARNING  | Exécution partielle en mode simulation (sans matériel complet)
+2026-04-08 14:58:14,322 | INFO     | Rapport enregistré : C:\HEH\BAC 2\GDPG9\GDP_G9\reports\routine_20260408_145814.txt
