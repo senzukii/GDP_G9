@@ -1,10 +1,10 @@
 import unittest
 from unittest.mock import patch, MagicMock
-import sys, os
+import sys
+import os
 
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', 'src'))
-
-with patch.dict('sys.modules', {'gpiozero': MagicMock()}): #lance tests sans avoir besoin d'etre sur rpi
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'src')))
+with patch.dict('sys.modules', {'gpiozero': MagicMock()}): 
     from HCSR04 import HCSR04
 
 
