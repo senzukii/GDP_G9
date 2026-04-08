@@ -1,8 +1,23 @@
+"""
+Module HCSR04 - Capteur ultrasonique HC-SR04
+
+Gère la lecture de distance via gpiozero sur Raspberry Pi.
+Applique une moyenne mobile sur les N dernières mesures pour lisser le bruit,
+et ignore les valeurs hors limites (< 10 cm ou > 200 cm).
+
+Broches utilisées (BCM) :
+    - Front : TRIG=11, ECHO=9
+    - Left  : TRIG=6,  ECHO=5
+    - Right : TRIG=26, ECHO=19
+
+Utilisation :
+    front = HCSR04(trigger_pin=11, echo_pin=9)
+    print(front.measure())              # distance en cm
+    print(front.get_obstacle_status())  # "clear", "warning" ou "critical"
+"""
+
 import time
-try:
-    from gpiozero import DistanceSensor
-except ImportError:
-    DistanceSensor = None
+from gpiozero import DistanceSensor
 
 class HCSR04:
     MIN_DISTANCE = 10
@@ -15,10 +30,8 @@ class HCSR04:
         self._offset = offset
         self._recent_distances = []
         self._last_valid = None
-        if DistanceSensor is not None:
-            self._sensor = DistanceSensor(echo=echo_pin, trigger=trigger_pin, max_distance=2)
-        else:
-            self._sensor = None
+        self._sensor = DistanceSensor(echo=echo_pin, trigger=trigger_pin, max_distance=2) # mesure auto d = ( t * vitesse son ) / 2 
+                                                                                          # max_distance = 2 => (2 metres)
     @property
     def trigger_pin(self):
         return self._trigger_pin
@@ -55,13 +68,13 @@ class HCSR04:
         return self._sensor.distance * 100 # 2 * 100 = 200 cm
 
     def _is_outlier(self, value):
-        return value < self.MIN_DISTANCE or value > self.MAX_DISTANCE 
+        return value < self.MIN_DISTANCE or value > self.MAX_DISTANCE
 
     def measure(self):
         raw = self._measure_pulse() - self._offset
 
         if self._is_outlier(raw): # si + grand que 200 ou + petit que 10, ca remplace par derniere mesure valide
-            if self._last_valid is None: 
+            if self._last_valid is None:
                 return None
             raw = self._last_valid
 
@@ -92,14 +105,14 @@ class HCSR04:
 
         if dist_left >= dist_right:
             if dist_left > threshold_cm * 2:
-                angle = -30 
+                angle = -30
             else:
                 angle = -15
 
             return "left", angle
         else:
             if dist_right > threshold_cm * 2:
-                angle = 30 
+                angle = 30
             else:
                 angle = 15
 

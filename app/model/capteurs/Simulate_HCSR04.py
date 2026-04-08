@@ -15,11 +15,31 @@ class HCSR04:
     MAX_DISTANCE = 200
 
     def __init__(self, N=5, offset=0.0):
-        self.N = N
-        self.offset = offset
+        self._N = N
+        self._offset = offset
         self._recent_distances = []
         self._simulated_distance = 100.0
         self._last_valid = None
+
+    @property
+    def N(self):
+        return self._N
+
+    @N.setter
+    def N(self, value):
+        if value < 1:
+            raise ValueError("N doit être >= 1")
+        self._N = value
+
+    @property
+    def offset(self):
+        return self._offset
+
+    @offset.setter
+    def offset(self, value):
+        if not isinstance(value, (int, float)):
+            raise ValueError("offset doit être un nombre")
+        self._offset = value
 
     def _simulate_pulse(self):
         noise = random.uniform(-0.5, 0.5)
@@ -29,7 +49,7 @@ class HCSR04:
         return value < self.MIN_DISTANCE or value > self.MAX_DISTANCE
 
     def measure(self):
-        raw = self._simulate_pulse() - self.offset
+        raw = self._simulate_pulse() - self._offset
 
         if self._is_outlier(raw):
             if self._last_valid is None:
@@ -38,7 +58,7 @@ class HCSR04:
 
         self._last_valid = raw
         self._recent_distances.append(raw)
-        if len(self._recent_distances) > self.N:
+        if len(self._recent_distances) > self._N:
             self._recent_distances.pop(0)
 
         return round(sum(self._recent_distances) / len(self._recent_distances), 2) #moyenne mobile
@@ -52,7 +72,7 @@ class HCSR04:
             return "unknown"
         if distance <= threshold_cm:
             return "critical"
-        if distance <= threshold_cm * 2: 
+        if distance <= threshold_cm * 2:
             return "warning"
         return "clear"
 
