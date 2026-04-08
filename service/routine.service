@@ -1,0 +1,14 @@
+[Unit]
+Description=Routine de test avant course GDP G9
+After=multi-user.target
+
+[Service]
+Type=oneshot
+ExecStart=/usr/bin/python3 /home/pi/GDP_G9/service/routine.py --auto
+WorkingDirectory=/home/pi/GDP_G9
+User=pi
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=multi-user.target

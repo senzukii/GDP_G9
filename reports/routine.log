@@ -1,0 +1,43 @@
+2026-04-08 14:05:57,749 | INFO     | Démarrage test moteur
+2026-04-08 14:05:57,751 | DEBUG    | Réglage vitesse à 50%
+2026-04-08 14:05:57,751 | DEBUG    | Vitesse actuelle : 50%
+2026-04-08 14:05:57,751 | DEBUG    | État moteur : avant
+2026-04-08 14:05:59,753 | DEBUG    | État moteur : arriere
+2026-04-08 14:06:01,754 | DEBUG    | État moteur : stop, vitesse : 0%
+2026-04-08 14:06:01,754 | INFO     | Test moteur réussi
+2026-04-08 14:06:03,254 | INFO     | Démarrage test servomoteur
+2026-04-08 14:06:03,255 | DEBUG    | Angle servo : 45°
+2026-04-08 14:06:04,256 | DEBUG    | Angle servo : 135°
+2026-04-08 14:06:05,258 | DEBUG    | Angle servo : 90°
+2026-04-08 14:06:05,759 | INFO     | Test servomoteur réussi
+2026-04-08 14:06:07,209 | INFO     | Démarrage test capteur IR
+2026-04-08 14:06:07,211 | DEBUG    | Seuil IR configuré : 0.5
+2026-04-08 14:06:07,211 | DEBUG    | Moteur démarré à 30%, en attente de détection...
+2026-04-08 14:06:08,441 | INFO     | Démarrage test capteurs ultrason
+2026-04-08 14:06:08,442 | ERROR    | Ultrason AVANT : capteur non connecte
+2026-04-08 14:06:08,442 | ERROR    | Ultrason GAUCHE : capteur non connecte
+2026-04-08 14:06:08,442 | ERROR    | Ultrason DROIT : capteur non connecte
+2026-04-08 14:06:09,217 | INFO     | Démarrage test capteur RGB
+2026-04-08 14:06:10,235 | INFO     | Démarrage test moteur
+2026-04-08 14:06:10,235 | DEBUG    | Réglage vitesse à 50%
+2026-04-08 14:06:10,235 | DEBUG    | Vitesse actuelle : 50%
+2026-04-08 14:06:10,235 | DEBUG    | État moteur : avant
+2026-04-08 14:06:12,237 | DEBUG    | État moteur : arriere
+2026-04-08 14:06:14,239 | DEBUG    | État moteur : stop, vitesse : 0%
+2026-04-08 14:06:14,239 | INFO     | Test moteur réussi
+2026-04-08 14:06:14,240 | INFO     | Démarrage test servomoteur
+2026-04-08 14:06:14,240 | DEBUG    | Angle servo : 45°
+2026-04-08 14:06:15,241 | DEBUG    | Angle servo : 135°
+2026-04-08 14:06:16,243 | DEBUG    | Angle servo : 90°
+2026-04-08 14:06:16,744 | INFO     | Test servomoteur réussi
+2026-04-08 14:06:16,745 | INFO     | Démarrage test capteur IR
+2026-04-08 14:06:16,745 | DEBUG    | Seuil IR configuré : 0.5
+2026-04-08 14:06:16,745 | DEBUG    | Moteur démarré à 30%, en attente de détection...
+2026-04-08 14:06:16,746 | ERROR    | Capteur IR : capteur non connecte
+2026-04-08 14:06:16,746 | INFO     | Démarrage test capteurs ultrason
+2026-04-08 14:06:16,746 | ERROR    | Ultrason AVANT : capteur non connecte
+2026-04-08 14:06:16,746 | ERROR    | Ultrason GAUCHE : capteur non connecte
+2026-04-08 14:06:16,746 | ERROR    | Ultrason DROIT : capteur non connecte
+2026-04-08 14:06:16,747 | INFO     | Démarrage test capteur RGB
+2026-04-08 14:06:16,747 | ERROR    | Démarrage Vert : capteur non connecte
+2026-04-08 14:06:16,752 | INFO     | Rapport enregistré : c:\Users\noahs\Documents\GitHub\GDP_G9\reports\routine_20260408_140616.txt
