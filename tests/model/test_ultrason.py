@@ -1,35 +1,71 @@
 import unittest
-from unittest.mock import Mock
+from unittest.mock import patch, MagicMock
 
-from app.model.capteurs.capteur_ultrason import CapteurUltrason
-
-
-class TestCapteurUltrason(unittest.TestCase):
-    def test_valeur_basse(self):
-        capteur = CapteurUltrason()
-        self.assertEqual(capteur.lire_distance(0), 0)
-
-    def test_valeur_seuil(self):
-        capteur = CapteurUltrason()
-        self.assertEqual(capteur.lire_distance(20), 20)
-
-    def test_valeur_haute(self):
-        capteur = CapteurUltrason()
-        self.assertEqual(capteur.lire_distance(100), 100)
-
-    def test_valeur_invalide(self):
-        capteur = CapteurUltrason()
-        with self.assertRaises(ValueError):
-            capteur.lire_distance(-1)
-
-    def test_lire_distance_avec_capteur_simule(self):
-        capteur_gpio = Mock()
-        capteur_gpio.distance = 0.2
-
-        capteur = CapteurUltrason(sensor=capteur_gpio, max_distance_cm=100)
-
-        self.assertEqual(capteur.lire_distance(), 20)
+from app.model.capteurs.capteur_ultrason import HCSR04
 
 
-if __name__ == "__main__":
+class TestHCSR04(unittest.TestCase):
+
+    def setUp(self):
+        self.s = HCSR04(trigger_pin=11, echo_pin=9)
+
+    @patch.object(HCSR04, '_measure_pulse', return_value=50.0)
+    def test_measure(self, _):
+        self.assertAlmostEqual(self.s.measure(), 50.0, delta=0.1)
+
+    @patch.object(HCSR04, '_measure_pulse', return_value=2.0)
+    def test_outlier_none(self, _):
+        self.assertIsNone(self.s.measure())
+
+    @patch.object(HCSR04, '_measure_pulse', side_effect=[50.0, 2.0])
+    def test_outlier_last_valid(self, _):
+        self.s.measure()
+        self.assertIsNotNone(self.s.measure())
+
+    @patch.object(HCSR04, 'measure', return_value=10.0)
+    def test_status_critical(self, _):
+        self.assertEqual(self.s.get_obstacle_status(15.0), "critical")
+
+    @patch.object(HCSR04, 'measure', return_value=20.0)
+    def test_status_warning(self, _):
+        self.assertEqual(self.s.get_obstacle_status(15.0), "warning")
+
+    @patch.object(HCSR04, 'measure', return_value=100.0)
+    def test_status_clear(self, _):
+        self.assertEqual(self.s.get_obstacle_status(15.0), "clear")
+
+    def test_direction_forward(self):
+        self.s.measure = MagicMock(return_value=100.0)
+        direction, angle = self.s.get_best_direction(MagicMock(), MagicMock())
+        self.assertEqual((direction, angle), ("forward", 0))
+
+    def test_direction_left(self):
+        self.s.measure = MagicMock(return_value=10.0)
+        left, right = MagicMock(), MagicMock()
+        left.measure.return_value = 80.0
+        right.measure.return_value = 20.0
+        direction, angle = self.s.get_best_direction(left, right)
+        self.assertEqual(direction, "left")
+
+    def test_direction_right(self):
+        self.s.measure = MagicMock(return_value=10.0)
+        left, right = MagicMock(), MagicMock()
+        left.measure.return_value = 20.0
+        right.measure.return_value = 80.0
+        direction, angle = self.s.get_best_direction(left, right)
+        self.assertEqual(direction, "right")
+
+    def test_scan(self):
+        left, right = MagicMock(), MagicMock()
+        left.measure.return_value = 60.0
+        right.measure.return_value = 80.0
+        result = self.s.scan({"left": left, "right": right})
+        self.assertEqual(result, {"left": 60.0, "right": 80.0})
+
+    def test_cleanup(self):
+        self.s.cleanup()
+        self.s._sensor.close.assert_called_once()
+
+
+if __name__ == '__main__':
     unittest.main()

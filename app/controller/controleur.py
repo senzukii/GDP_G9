@@ -1,7 +1,7 @@
 from app.model.actionneurs.moteur import MoteurDC
 from app.model.actionneurs.servomoteur import Servomoteur
 from app.model.capteurs.capteur_infrarouge import CapteurInfrarouge
-from app.model.capteurs.capteur_ultrason import CapteurUltrason
+from app.model.capteurs.capteur_ultrason import HCSR04
 from app.view.interface import Interface
 
 
@@ -15,7 +15,7 @@ class Controleur:
         self.set_moteur(moteur or MoteurDC())
         self.set_servo(servo or Servomoteur())
         self.set_capteur_ir(capteur_ir or CapteurInfrarouge())
-        self.set_capteur_us(capteur_us or CapteurUltrason())
+        self.set_capteur_us(capteur_us or HCSR04())
         self.set_vue(vue or Interface())
 
     @property
