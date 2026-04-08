@@ -6,14 +6,7 @@ from datetime import datetime
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
 from app.controller.controleur import Controleur
-
-
-class _CapteurUltrasonSimule:
-    def __init__(self, distance_cm=100.0):
-        self._distance_cm = float(distance_cm)
-
-    def measure(self):
-        return self._distance_cm
+from app.model.capteurs.capteur_ultrason import HCSR04
 
 # === CÂBLAGE GPIO ===
 # Capteur IR : GPIO 20
@@ -35,23 +28,47 @@ class Routine:
         self.__controleur = controleur or Controleur()
         self.__resultats = {}
         self.__logs = []
-        self._mode_simulation = False
-        self._initialiser_fallbacks_simulation()
+        self._initialiser_materiel_concret()
         self._init_logger()
 
-    def _initialiser_fallbacks_simulation(self):
-        """Ajoute des capteurs simulés quand le matériel n'est pas disponible."""
+    def _initialiser_materiel_concret(self):
+        """Prépare les capteurs réels utilisés par la routine."""
         ctrl = self.__controleur
 
+        self._initialiser_capteur_infrarouge(ctrl)
+        self._initialiser_capteurs_ultrason(ctrl)
+
+    def _initialiser_capteur_infrarouge(self, ctrl):
+        if ctrl.capteur_ir is None:
+            raise RuntimeError("Capteur infrarouge non disponible")
+
+        if getattr(ctrl.capteur_ir, "capteur", None) is None:
+            ctrl.capteur_ir.setup()
+
+    def _creer_capteur_ultrason(self, trigger_pin, echo_pin):
+        capteur = HCSR04(trigger_pin=trigger_pin, echo_pin=echo_pin)
+        if getattr(capteur, "_sensor", None) is None:
+            raise RuntimeError(
+                f"Capteur ultrason indisponible sur TRIG={trigger_pin}, ECHO={echo_pin}"
+            )
+        return capteur
+
+    def _initialiser_capteurs_ultrason(self, ctrl):
         if ctrl.capteur_us_avant is None:
-            ctrl.set_capteur_us_avant(_CapteurUltrasonSimule(80.0))
-            self._mode_simulation = True
+            ctrl.set_capteur_us_avant(self._creer_capteur_ultrason(11, 9))
         if ctrl.capteur_us_gauche is None:
-            ctrl.set_capteur_us_gauche(_CapteurUltrasonSimule(65.0))
-            self._mode_simulation = True
+            ctrl.set_capteur_us_gauche(self._creer_capteur_ultrason(6, 5))
         if ctrl.capteur_us_droit is None:
-            ctrl.set_capteur_us_droit(_CapteurUltrasonSimule(75.0))
-            self._mode_simulation = True
+            ctrl.set_capteur_us_droit(self._creer_capteur_ultrason(26, 19))
+
+    def _fermer_capteurs_ultrason(self):
+        for capteur in (
+            self.__controleur.capteur_us_avant,
+            self.__controleur.capteur_us_gauche,
+            self.__controleur.capteur_us_droit,
+        ):
+            if capteur is not None and hasattr(capteur, "cleanup"):
+                capteur.cleanup()
 
     def _init_logger(self):
         self.__logger = logging.getLogger("routine")
@@ -201,15 +218,9 @@ class Routine:
         ctrl.moteur.avancer()
         self._log("DEBUG", "Moteur démarré à 30%, en attente de détection...")
 
-        tentative = 0
+        debut = time.time()
         while True:
-            tentative += 1
-            try:
-                detecte = ctrl.capteur_ir.detecter()
-            except TypeError:
-                # Sur PC, sans capteur GPIO initialisé, on simule la détection.
-                detecte = ctrl.capteur_ir.detecter(0.1 if tentative >= 10 else 0.9)
-                self._mode_simulation = True
+            detecte = ctrl.capteur_ir.detecter()
 
             if detecte:
                 ctrl.moteur.arreter()
@@ -217,6 +228,10 @@ class Routine:
                 self._log("OK", "Ligne noire détectée, arrêt réussi")
                 print("Ligne noire détectée ! Arrêt. Test OK.")
                 break
+
+            if (time.time() - debut) > 10:
+                raise TimeoutError("Aucune ligne noire détectée dans le délai imparti")
+
             time.sleep(0.05)
 
     def test_capteurs_ultrason(self):
@@ -262,22 +277,14 @@ class Routine:
         ctrl = self.__controleur
 
         self._log("INFO", "Démarrage test capteur RGB")
+        if getattr(ctrl.capteur_rgb, "capteur", None) is None:
+            raise RuntimeError("Capteur RGB indisponible")
+
         print("En attente du feu vert... (présente le vert devant le capteur)")
 
         debut = time.time()
         while True:
-            vert_detecte = False
-
-            if hasattr(ctrl.capteur_rgb, "est_vert"):
-                vert_detecte = ctrl.capteur_rgb.est_vert()
-            elif hasattr(ctrl.capteur_rgb, "detecter_vert"):
-                vert_detecte = ctrl.capteur_rgb.detecter_vert()
-
-            if not vert_detecte and getattr(ctrl.capteur_rgb, "capteur", None) is None and (time.time() - debut) > 1.5:
-                # Mode simulation PC: feu vert simulé après un court délai.
-                vert_detecte = True
-                self._mode_simulation = True
-                self._log("WARN", "Capteur RGB non disponible, feu vert simulé")
+            vert_detecte = ctrl.capteur_rgb.est_vert()
 
             if vert_detecte:
                 self._log("OK", "Vert détecté, démarrage")
@@ -301,19 +308,22 @@ class Routine:
         self.__resultats = {}
         self.__logs = []
 
-        for nom, test in [
-            ("Moteur", self.test_moteur),
-            ("Servomoteur", self.test_servo),
-            ("Capteur IR", self.test_capteur_ir),
-            ("Capteurs Ultrason", self.test_capteurs_ultrason),
-            ("Démarrage Vert", self.test_demarrage_vert),
-        ]:
-            try:
-                test()
-                self.__resultats[nom] = True
-            except Exception as e:
-                self.__resultats[nom] = False
-                self._log("ERREUR", f"{nom} : {e}")
+        try:
+            for nom, test in [
+                ("Moteur", self.test_moteur),
+                ("Servomoteur", self.test_servo),
+                ("Capteur IR", self.test_capteur_ir),
+                ("Capteurs Ultrason", self.test_capteurs_ultrason),
+                ("Démarrage Vert", self.test_demarrage_vert),
+            ]:
+                try:
+                    test()
+                    self.__resultats[nom] = True
+                except Exception as e:
+                    self.__resultats[nom] = False
+                    self._log("ERREUR", f"{nom} : {e}")
+        finally:
+            self._fermer_capteurs_ultrason()
 
         print("\n=== RÉSUMÉ ===")
         for nom, ok in self.__resultats.items():
@@ -321,9 +331,6 @@ class Routine:
 
         pret = all(self.__resultats.values())
         print(f"\nÉtat global : {'PRÊT' if pret else 'NON PRÊT'}")
-
-        if self._mode_simulation:
-            self._log("WARN", "Exécution partielle en mode simulation (sans matériel complet)")
 
         self._generer_rapport()
         return pret
