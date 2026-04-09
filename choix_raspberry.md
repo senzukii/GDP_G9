@@ -1,40 +1,50 @@
 # RAPPORT TECHNIQUE : DOCUMENTATION DES CHOIX TECHNIQUES (US2)
 
-Document complet et justificatif du choix de Raspberry Pi ainsi que l'utilisation de Python.
+# Justification du choix matériel : Le Raspberry Pi 3 pour notre véhicule robotisé
+
+Le développement d'un projet de voiture intelligente implique des contraintes techniques fortes : le système doit pouvoir gérer plusieurs actions simultanément (piloter les moteurs, lire des capteurs, transmettre des données) tout en étant contrôlable à distance. 
+
+Pour répondre à ce cahier des charges, nous avons comparé plusieurs plateformes embarquées. Le **Raspberry Pi 3** a été retenu car il offre l'architecture matérielle et logicielle la plus adaptée à un véhicule autonome, avec un rapport qualité/prix imbattable.
 
 ---
 
-## 1. Comparaison des plateformes embarquées
+## 1. Comparaison des plateformes pour la robotique mobile
 
-| CRITÈRE | RASPBERRY PI 3 B | ARDUINO UNO | ESP32 | NVIDIA JETSON NANO | BEAGLEBONE BLACK |
+Le tableau ci-dessous confronte le Raspberry Pi 3 aux microcontrôleurs classiques (souvent utilisés en robotique basique) et à d'autres nano-ordinateurs concurrents :
+
+| Plateforme | Multitâche (OS) | Mémoire (RAM) | Connectivité Native | Broches (GPIO) | Prix estimé |
 | :--- | :--- | :--- | :--- | :--- | :--- |
-| **Prix** | ~35-40€ | ~20-25€ | ~10-15€ | ~100-150€ | ~50-60€ |
-| **Processeur** | Quad-core 1.2 GHz | 16 MHz | Dual-core 240 MHz | Quad-core 1.43 GHz | 1 GHz ARM |
-| **RAM** | 1 GB | 2 KB | 520 KB | 2-4 GB | 512 MB |
-| **GPIO** | 40 pins | 14 digital, 6 analog | 36 pins | 40 pins | 65 pins |
-| **Langages** | Python, C++, Java | C/C++ | C/C++, Python | Python, C++ | Python, C++ |
-| **Système d'exploitation** | Raspbian (Linux) | Aucun | FreeRTOS | Ubuntu | Debian |
-| **Consommation** | ~2.5W | ~0.5W | ~0.5W | ~10W | ~2W |
-| **Multitâche** | Oui | Non | Oui | Oui | Oui |
+| **Raspberry Pi 3 (Choisi)** | **Oui (Linux / Quad-Core)** | **1 GB** | **Wi-Fi, Bluetooth, 4x USB** | **40** | **~40€** |
+| **Arduino Uno R3** | Non  | 2 KB | Aucune | 20 | ~25€ |
+| **BeagleBone Black** | Oui (Linux / Single-Core) | 512 MB | Ethernet, 1x USB | 65 | ~60€ |
+| **Orange Pi PC** | Oui (Linux / Quad-Core) | 1 GB | Ethernet, 3x USB | 40 | ~30€ |
 
 ---
 
-## 2. Raspberry Pi 3 Model B
+## 2. Analyse des résultats et adéquation avec le projet "Voiture"
 
-### Pourquoi celui-là :
-* **Compatibilité logicielle :** Support natif de Python avec accès direct aux bibliothèques GPIO nécessaires au projet.
-* **Puissance de calcul :** Parfaite pour exécuter des algorithmes de navigation, de détection et de gestion en temps réel.
-* **Connectivité intégrée :** WiFi embarqué permettant une connexion SSH.
-* **Multitâche :** Système Linux permettant l’exécution simultanée de plusieurs processus (capteurs, moteurs, logs, réseau).
-* **Connectique :** 40 GPIO parfait pour connecter tous les composants.
+L'analyse de ces critères démontre que le Raspberry Pi 3 est la solution idéale pour motoriser et piloter notre véhicule, pour les raisons suivantes :
 
-### Pourquoi pas un autre :
-* **Arduino Uno :** Trop limité (absence de système d’exploitation, pas de multitâche,...).
-* **ESP32 :** Intéressant mais moins adapté à une architecture Linux complète avec gestion avancée (logs, SSH).
-* **Jetson Nano :** Trop puissant et énergivore pour ce type de projet.
-* **BeagleBone Black :** Alternative viable mais moins accessible en termes de documentation et d’écosystème que Raspberry Pi.
+### A. La nécessité vitale du Multitâche (Victoire face à l'Arduino)
+Dans une voiture, il est impossible d'attendre. Le système ne peut pas bloquer l'exécution du code pour attendre la réponse d'un capteur (comme un radar de recul ultrason) alors que les moteurs tournent à pleine vitesse. 
+* L'Arduino exécute les instructions les unes après les autres de manière linéaire. 
+* **Le Raspberry Pi 3**, grâce à son système d'exploitation Linux et son processeur à 4 cœurs (Quad-Core), gère le **multitâche de manière fluide**. Il peut exécuter un script Python pour analyser un flux vidéo (caméra), pendant qu'un autre script lit les capteurs de distance, et qu'un troisième ajuste la vitesse des roues (PWM).
+
+### B. Le pilotage et WiFi (Victoire face à l'Orange Pi et BeagleBone)
+Un véhicule est par nature mobile : il ne peut pas être relié par un câble réseau (Ethernet). 
+* L'Orange Pi PC et le BeagleBone Black nécessiteraient l'ajout de clés USB Wi-Fi ou Bluetooth externes, ce qui occupe de la place sur le châssis, consomme plus d'énergie et pose des problèmes de pilotes.
+* **Le Raspberry Pi 3 intègre nativement le Wi-Fi et le Bluetooth.** 
+
+### C. RAM et GPIO : Le dimensionnement parfait
+Pour une voiture, nous avons besoin de mémoire pour le traitement de données (ex: analyse d'images, cartographie, serveur web embarqué) et de broches physiques pour le matériel.
+* Avec ses **40 broches GPIO**, le Raspberry Pi permet de brancher directement les contrôleurs de moteurs (ex: pont en H L298N), les servos de direction et de multiples capteurs.
+* Son **1 GB de RAM** est amplement suffisant pour faire tourner nos algorithmes de contrôle en Python, là où les 512 MB du BeagleBone risqueraient de saturer en cas d'utilisation d'une caméra.
 
 ---
+
+## Conclusion
+
+Le **Raspberry Pi 3** a été choisi car c'est le "cerveau" parfait pour notre voiture. Il écrase les microcontrôleurs grâce à sa capacité à gérer le multitâche complexe (vision + déplacement simultanés), et il bat ses concurrents SBC grâce à son Wi-Fi/Bluetooth natif indispensable pour un véhicule sans fil, le tout en respectant notre budget.
 
 ## 3. Justification du choix de Python
 
@@ -104,7 +114,7 @@ Document complet et justificatif du choix de Raspberry Pi ainsi que l'utilisatio
 
 ---
 
-### 4.5 adafruit
+### 4.6 adafruit
 **Pourquoi celle-là :**
 * Indispensable pour communiquer avec la carte PWM intermédiaire (PCA9685) via le protocole I2C.
 * Permet d'exploiter le signal PWM matériel de la carte PCA9685
