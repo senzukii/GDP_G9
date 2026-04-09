@@ -1,147 +1,109 @@
-# RAPPORT TECHNIQUE : DOCUMENTATION DES CHOIX TECHNIQUES (US2)
+# Choix techniques pour le projet voiture (US2)
 
-# Justification du choix matériel : Le Raspberry Pi 3 pour notre véhicule robotisé
+## 1. Comparaison des plateformes
 
-Le développement d'un projet de voiture intelligente implique des contraintes techniques fortes : le système doit pouvoir gérer plusieurs actions simultanément (piloter les moteurs, lire des capteurs, transmettre des données) tout en étant contrôlable à distance. 
+On a fait un tableau pour voir ce qui existe :
 
-Pour répondre à ce cahier des charges, nous avons comparé plusieurs plateformes embarquées. Le **Raspberry Pi 3** a été retenu car il offre l'architecture matérielle et logicielle la plus adaptée à un véhicule autonome, avec un rapport qualité/prix imbattable.
+| Plateforme | Multitâche (OS) | Mémoire RAM | Connectivité | Broches GPIO | Prix |
+|------------|-----------------|-------------|--------------|--------------|------|
+| **Raspberry Pi 3** | **Oui (Linux / 4 cœurs)** | **1 GB** | **Wi-Fi + Bluetooth + 4x USB** | **40** | **~40€** |
+| Arduino Uno R3 | Non | 2 KB | Rien | 20 | ~25€ |
+| BeagleBone Black | Oui (Linux / 1 cœur) | 512 MB | Ethernet + 1x USB | 65 | ~60€ |
+| Orange Pi PC | Oui (Linux / 4 cœurs) | 1 GB | Ethernet + 3x USB | 40 | ~30€ |
 
----
+## 2. Pourquoi on a choisi le Raspberry Pi 3
 
-## 1. Comparaison des plateformes pour la robotique mobile
+Les raisons principales, et pour la nécessité du projet sont : le multi tâches, le WiFi, le nombres de GPiO disponibles ainsi que la RAM.
 
-Le tableau ci-dessous confronte le Raspberry Pi 3 aux microcontrôleurs classiques (souvent utilisés en robotique basique) et à d'autres nano-ordinateurs concurrents :
+### Le multitâche, c'est super important
 
-| Plateforme | Multitâche (OS) | Mémoire (RAM) | Connectivité Native | Broches (GPIO) | Prix estimé |
-| :--- | :--- | :--- | :--- | :--- | :--- |
-| **Raspberry Pi 3 (Choisi)** | **Oui (Linux / Quad-Core)** | **1 GB** | **Wi-Fi, Bluetooth, 4x USB** | **40** | **~40€** |
-| **Arduino Uno R3** | Non  | 2 KB | Aucune | 20 | ~25€ |
-| **BeagleBone Black** | Oui (Linux / Single-Core) | 512 MB | Ethernet, 1x USB | 65 | ~60€ |
-| **Orange Pi PC** | Oui (Linux / Quad-Core) | 1 GB | Ethernet, 3x USB | 40 | ~30€ |
+Déjà, avec une voiture on peut pas se permettre d'attendre.
+Si le programme est en train de lire un capteur ultrason, les moteurs doivent continuer à tourner quand même.
+Avec l'Arduino c'est impossible parce qu'il fait les tâches les unes après les autres.
 
----
+Le Raspberry Pi par contre, avec son Linux et ses 4 cœurs, il peut gérer plein de trucs en même temps. Genre analyser la vidéo de la caméra, lire les capteurs ET contrôler les roues, tout ça en parallèle.
 
-## 2. Analyse des résultats et adéquation avec le projet "Voiture"
+### Le WiFi c'est indispensable
 
-L'analyse de ces critères démontre que le Raspberry Pi 3 est la solution idéale pour motoriser et piloter notre véhicule, pour les raisons suivantes :
+Bon logiquement une voiture elle bouge, donc on peut pas la brancher avec un câble Ethernet...
+Du coup le WiFi et Bluetooth qui sont déjà intégrés dans le Raspberry Pi 3, c'est carrément parfait. 
+Avec l'Orange Pi ou le BeagleBone on aurait dû rajouter des clés USB en plus, et ça prend de la place et ça ainsi que  de la batterie pour rien.
 
-### A. La nécessité vitale du Multitâche (Victoire face à l'Arduino)
-Dans une voiture, il est impossible d'attendre. Le système ne peut pas bloquer l'exécution du code pour attendre la réponse d'un capteur (comme un radar de recul ultrason) alors que les moteurs tournent à pleine vitesse. 
-* L'Arduino exécute les instructions les unes après les autres de manière linéaire. 
-* **Le Raspberry Pi 3**, grâce à son système d'exploitation Linux et son processeur à 4 cœurs (Quad-Core), gère le **multitâche de manière fluide**. Il peut exécuter un script Python pour analyser un flux vidéo (caméra), pendant qu'un autre script lit les capteurs de distance, et qu'un troisième ajuste la vitesse des roues (PWM).
+### La RAM et les GPIO
 
-### B. Le pilotage et WiFi (Victoire face à l'Orange Pi et BeagleBone)
-Un véhicule est par nature mobile : il ne peut pas être relié par un câble réseau (Ethernet). 
-* L'Orange Pi PC et le BeagleBone Black nécessiteraient l'ajout de clés USB Wi-Fi ou Bluetooth externes, ce qui occupe de la place sur le châssis, consomme plus d'énergie et pose des problèmes de pilotes.
-* **Le Raspberry Pi 3 intègre nativement le Wi-Fi et le Bluetooth.** 
+Avec 1 GB de RAM on est tranquille pour faire tourner nos scripts Python et traiter les images de la caméra. 
+Le BeagleBone avec juste 512 MB aurait peut-être galéré un peu.
 
-### C. RAM et GPIO : Le dimensionnement parfait
-Pour une voiture, nous avons besoin de mémoire pour le traitement de données (ex: analyse d'images, cartographie, serveur web embarqué) et de broches physiques pour le matériel.
-* Avec ses **40 broches GPIO**, le Raspberry Pi permet de brancher directement les contrôleurs de moteurs (ex: pont en H L298N), les servos de direction et de multiples capteurs.
-* Son **1 GB de RAM** est amplement suffisant pour faire tourner nos algorithmes de contrôle en Python, là où les 512 MB du BeagleBone risqueraient de saturer en cas d'utilisation d'une caméra.
+Et puis les 40 broches GPIO c'est nickel pour brancher les contrôleurs de moteurs (le pont en H L298N), les servos et tous les capteurs qu'on veut.
 
----
+## 3. Pourquoi Python
 
-## Conclusion
+Pour le langage de programmation on a pris Python et voilà pourquoi :
 
-Le **Raspberry Pi 3** a été choisi car c'est le "cerveau" parfait pour notre voiture. Il écrase les microcontrôleurs grâce à sa capacité à gérer le multitâche complexe (vision + déplacement simultanés), et il bat ses concurrents SBC grâce à son Wi-Fi/Bluetooth natif indispensable pour un véhicule sans fil, le tout en respectant notre budget.
+- C'est le langage recommandé par Raspberry Pi Foundation donc la documentation est bien présente
+- C'est facile à lire et rapide à coder, ça tombe bien vu qu'on a pas des masses de temps avec le Scrum, est le nombres d'user story
+- Il y a plein de bibliothèques toutes faites pour gérer le matériel
+- La communauté est énorme donc quand on bloque on trouve vite de l'aide
 
-## 3. Justification du choix de Python
+On aurait pu prendre le C/C++ mais bon c'est beaucoup plus compliqué à coder et on a pas le temps pour ça. 
+Le Java c'est pas vraiment fait pour contrôler du matos directement sur Raspberry Pi.
 
-### Pourquoi celui-là :
-* **Support officiel :** Python est le langage recommandé par la Raspberry Pi Foundation.
-* **Lisibilité et rapidité de développement :** Permet une implémentation rapide pour un projet court (Scrum).
-* **Écosystème riche :** Large disponibilité de bibliothèques adaptées au matériel embarqué.
-* **Communauté :** Documentation abondante facilitant la résolution de problèmes.
+## 4. Les bibliothèques qu'on utilise
 
-### Pourquoi pas un autre :
-* **C/C++ :** Plus performant mais plus complexe à développer et maintenir dans un temps limité.
-* **Java :** Moins utilisé pour l’interaction bas niveau avec le matériel Raspberry Pi.
-* **Langages bas niveau :** Moins adaptés à un projet nécessitant rapidité de développement et flexibilité.
+### gpiozero
 
----
+C'est une bibliothèque moderne pour contrôler les GPIO. 
+Elle a des objets tout prêts genre AngularServo pour les servomoteurs ou DistanceSensor pour les capteurs ultrason. 
+Ça rend le code beaucoup plus simple.
 
-## 4. Bibliothèques Python utilisées
+On aurait pu utiliser RPi.GPIO mais c'est plus vieux et moins pratique, le code est plus lourd avec.
 
-## 4.1 gpiozero
-**Pourquoi celle-là :**
-* Bibliothèque moderne pour le contrôle des GPIO.
-* Fournit des objets "prêts à l'emploi" (ex: `AngularServo` pour le servomoteur, `DistanceSensor` pour les capteurs ultrasons).
-* Facilite grandement l'écriture de tests unitaires (via les *mocks*).
+### time
 
-**Pourquoi pas une autre :**
-* **RPi.GPIO :** Bibliothèque vieillissante et de plus bas niveau.  Ce qui rend le code plus lourd, moins lisible et plus difficile à maintenir.
+Pour gérer les délais et calculer les durées. 
+On s'en sert notamment pour calculer les distances avec les capteurs ultrason. 
+C'est une bibliothèque de base Python donc rien à installer.
 
----
+### threading
 
-### 4.2 time
-**Pourquoi celle-là :**
-* Gestion des délais et mesure des durées.
-* Utilisée pour le calcul de distance avec les capteurs ultrason.
+Ça permet de faire tourner plusieurs tâches en même temps. 
+Super important pour gérer les capteurs et les moteurs en parallèle. 
+On aurait pu utiliser multiprocessing mais c'est trop lourd pour ce qu'on fait.
 
-**Pourquoi pas une autre :**
-* Bibliothèque native suffisante, aucune alternative nécessaire.
+### logging
 
----
+Pour mettre en place des logs structurés. 
+C'est pratique pour débugger à distance via SSH. 
+Si on avait juste fait des print() ce serait beaucoup moins pro et moins facile à suivre.
 
-### 4.3 threading
-**Pourquoi celle-là :**
-* Permet l’exécution simultanée de plusieurs tâches.
-* Indispensable pour gérer capteurs et moteurs en parallèle.
+### sys
 
-**Pourquoi pas une autre :**
-* **multiprocessing :** Plus lourd et inutile pour ce type d’application embarquée légère.
+Pour gérer l'exécution du programme et arrêter proprement quand y'a des erreurs. 
+Bibliothèque standard Python.
 
----
+### adafruit
 
-### 4.4 logging
-**Pourquoi celle-là :**
-* Mise en place d’un système de logs structuré.
-* Permet le diagnostic à distance via SSH.
-
-**Pourquoi pas une autre :**
-* Utilisation de `print()` insuffisante pour un suivi structuré et professionnel.
-
----
-
-### 4.5 sys
-**Pourquoi celle-là :**
-* Gestion de l’exécution et arrêt contrôlé du programme.
-* Utile pour gérer les erreurs et les fins de processus.
-
-**Pourquoi pas une autre :**
-* Bibliothèque standard suffisante pour ce besoin.
-
----
-
-### 4.6 adafruit
-**Pourquoi celle-là :**
-* Indispensable pour communiquer avec la carte PWM intermédiaire (PCA9685) via le protocole I2C.
-* Permet d'exploiter le signal PWM matériel de la carte PCA9685
-
-**Pourquoi pas une autre :**
-* **gpiozero / RPi.GPIO :** Incompatibles avec ce module spécifique, car elles sont conçues pour des signaux électriques directs sur les broches du Raspberry Pi, et non pour dialoguer avec une puce I2C.
-
----
+Celle-là elle est obligatoire pour parler avec la carte PWM (PCA9685) en I2C. 
+On peut pas utiliser gpiozero ou RPi.GPIO pour ça parce qu'elles sont faites pour contrôler directement les broches du Raspberry, pas pour dialoguer avec une puce I2C.
 
 ## Conclusion
 
-Le choix du Raspberry Pi 3 Model B associé à Python est parfait pour puissance, flexibilité et simplicité.
-Cette combinaison permet de répondre efficacement au  projet :
-- gestion en temps réel des capteurs et moteurs  
-- communication réseau via SSH  
-- développement rapide
-- compatibilité complète avec le matériel  
+Le Raspberry Pi 3 avec Python c'est le meilleur choix pour notre projet. 
+On a la puissance qu'il faut, c'est flexible, et surtout c'est simple à utiliser.
 
----
+Ça nous permet de :
+- Gérer en temps réel les capteurs et moteurs
+- Communiquer par WiFi et SSH
+- Développer vite
+- Avoir un matos compatible
 
 ## Sources
 
-- https://monraspberry.com/tableau-comparatif-des-raspberry-pi/  
-- https://docs.arduino.cc/hardware/uno-rev3/#tech-specs  
-- https://fr.wikipedia.org/wiki/ESP32  
-- https://www.nvidia.com/fr-fr/autonomous-machines/embedded-systems/jetson-nano/product-development/  
-- https://www.moussasoft.com/beaglebone-black-rev-c-ti-am335x-cortex-a8-guide-complet-sur-cette-carte/  
-- https://raspberrytips.fr/pourquoi-python-sur-raspberry-pi/  
-- https://gpiozero.readthedocs.io/en/stable/  
-- Gemini  
+- https://monraspberry.com/tableau-comparatif-des-raspberry-pi/
+- https://docs.arduino.cc/hardware/uno-rev3/#tech-specs
+- https://fr.wikipedia.org/wiki/ESP32
+- https://www.nvidia.com/fr-fr/autonomous-machines/embedded-systems/jetson-nano/product-development/
+- https://www.moussasoft.com/beaglebone-black-rev-c-ti-am335x-cortex-a8-guide-complet-sur-cette-carte/
+- https://raspberrytips.fr/pourquoi-python-sur-raspberry-pi/
+- https://gpiozero.readthedocs.io/en/stable/
+- Gemini
