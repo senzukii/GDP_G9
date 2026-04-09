@@ -1,148 +1,169 @@
-# RAPPORT TECHNIQUE : DOCUMENTATION DES CAPTEURS (US3)
+# RAPPORT TECHNIQUE : DOCUMENTATION DES COMPOSANTS (US3)
 
-Ce document détaille le fonctionnement et la justification de chaque capteur utilisé dans le projet de module mobile.
+Ce document explique le fonctionnement des composants qu'on a utilisés dans notre projet.
 
 ---
 
-## 1. HC-SR04 — Capteur Ultrason (x3)
+## 1. HC-SR04 — Capteur Ultrason
 
-### Fonctionnement
+### Comment ça marche
 
-Le HC-SR04 envoie une onde sonore ultrasonique et mesure le temps qu’il met pour revenir après avoir touché un obstacle.
+Le HC-SR04 envoie une onde ultrasonique sur un obstacle, ca ricoche et attend qu'elle revienne vers le capteur.
 
-Il possède **4 broches** :
+Le capteur a 4 broches :
 
 | Broche | Nom | Rôle |
 | :--- | :--- | :--- |
 | 1 | **VCC** | Alimentation +5V |
-| 2 | **TRIG** | Déclencheur : le Pi envoie un pulse de 10µs pour lancer la mesure |
-| 3 | **ECHO** | Réponse : reste HIGH pendant toute la durée du trajet de l'onde |
+| 2 | **TRIG** | On envoie un pulse de 10µs pour déclencher une mesure |
+| 3 | **ECHO** | Reste à HIGH le temps que l'onde fasse l'aller-retour |
 | 4 | **GND** | Masse (0V) |
 
-### Séquence de mesure
+Concrètement, voilà ce qui se passe à chaque mesure :
+HIGH = 1
+LOW = 0
 
-1. Le Pi met **TRIG à HIGH** pendant **10 microsecondes** puis le remet à LOW
-2. Le capteur envoie **8 pulses ultrasoniques** à 40 kHz
-3. **ECHO passe à HIGH** dès que l'onde part
-4. **ECHO repasse à LOW** dès que l'onde revient
-5. On mesure le temps pendant lequel ECHO était HIGH
+1. Le Pi met TRIG à HIGH pendant 10 microsecondes
+2. Le capteur envoie 8 pulses ultrasoniques à 40 kHz
+3. ECHO passe à HIGH dès que l'onde part
+4. ECHO repasse à LOW quand l'onde revient
+5. On mesure combien de temps ECHO est resté HIGH, et on calcule la distance
 
-### Formule de calcul
-d = (t × v_son) / 2
+### Pourquoi c'est pas trop précis
 
-- **t** = durée pendant laquelle ECHO était HIGH (en secondes)
-- **v_son** = 34 300 cm/s (vitesse du son à température ambiante)
-- **/ 2** car l'onde fait l'aller ET le retour
+Plusieurs choses peuvent fausser la mesure. La température joue sur la vitesse du son, donc si la salle est froide la mesure sera légèrement différente. Si l'obstacle est incliné, l'onde repart dans une autre direction et ne revient pas vers le capteur. Et entre deux mesures il faut attendre environ 60ms, ce qui peut poser problème si la voiture va vite.
 
-**Exemple :** si ECHO reste HIGH pendant 0.00058s :
-d = (0.00058 × 34300) / 2 = 9.94 cm → obstacle à ~10 cm
-
-### Pourquoi pas très précis ?
-
-Plusieurs facteurs perturbent la mesure :
-
-- **La température** modifie la vitesse du son
-- **L'angle** de l'obstacle : si la surface est inclinée, l'onde repart ailleurs et ne revient pas
-- **Les surfaces molles** absorbent une partie de l'onde
-- **Temps de réponse** : ~60ms minimum entre deux mesures
-
-C'est pour ça qu'on utilise **3 capteurs** (gauche, droite, devant) pour compenser ces imprécisions.
-
-### Pourquoi ce capteur ?
-
-- Excellent rapport qualité/prix pour de la robotique de base
-- Suffisant pour détecter un obstacle à 10 cm minimum comme exigé
-- Interfaçage simple via GPIO sans protocole complexe
+C'est pour ca qu'il y a  3 capteurs : un devant, un à gauche, un à droite car si un donne une mauvaise valeur les deux autres compensent.
 
 ---
 
 ## 2. Capteur Infrarouge — Suiveur de ligne
 
-### Fonctionnement
+### Comment ça marche
 
-Le capteur IR émet une lumière infrarouge vers le sol et mesure ce qui est réfléchi :
+Le capteur envoie de la lumière infrarouge vers le sol et regarde ce qui revient. Sur une surface blanche beaucoup de lumière est réfléchie, le capteur renvoie HIGH. Sur la ligne noire d'arrivée la lumière est absorbée, le capteur renvoie LOW. C'est tout, ya pas de calcul derrière, juste un 0 ou un 1.
 
-- **Surface blanche** → réfléchit beaucoup → signal **HIGH**
-- **Surface noire** (ligne d'arrivée) → absorbe la lumière → signal **LOW**
-
-Il retourne un signal **binaire** (0 ou 1). Pas de calcul, pas de formule.
-
-### Pourquoi ce capteur ?
-
-- **Réactif** : la détection est quasi instantanée
-- **Simple** : une seule broche GPIO en entrée suffit
-- **Fiable** pour distinguer noir/blanc sur un circuit
-
-### Pourquoi pas une caméra ?
-
-Une caméra avec OpenCV demanderait trop de puissance de calcul au Raspberry Pi, ce qui ralentirait la boucle de contrôle principale des moteurs.
+Ce qui est pratique c'est que la réponse est quasi immédiate, donc la voiture peut s'arrêter précisément à moins de 5 cm de la ligne comme demandé dans le cahier de charges.
 
 ---
 
 ## 3. TCS3472 — Capteur de couleur RGB
 
-### Fonctionnement
+### Comment ça marche
 
-Le TCS3472 mesure l'intensité des composantes **Rouge, Vert, Bleu** de la lumière qu'il reçoit. Il communique via le protocole **I2C** avec seulement 2 fils :
+Ce capteur lit la lumière devant lui et en extrait les valeurs Rouge, Vert et Bleu. Il communique avec le Pi via I2C, un bus qui utilise seulement 2 fils :
 
 | Fil | Rôle |
 | :--- | :--- |
-| **SDA** | Données (Serial Data) |
-| **SCL** | Horloge de synchronisation (Serial Clock) |
+| **SDA** | C'est le fil qui transporte les données |
+| **SCL** | C'est le fil qui synchronise l'échange pour que les données soient lues au bon moment (si pas bien synchro, données éronnées envoyées) |
 
-Il retourne 4 valeurs numériques : R, G, B et Clear (luminosité globale).
+Dans notre projet on s'en sert pour détecter le feu vert de départ. Quand la valeur verte dépasse un certain seuil qu'on définit dans le code, la voiture démarre toute seule.
 
-### Utilisation dans le projet
-
-Détecter le **feu vert de départ** : quand la valeur G (vert) dépasse un seuil défini, la voiture démarre automatiquement sans intervention humaine.
-
-### Pourquoi pas le TCS3200 ?
-
-Le TCS3200 produit une fréquence proportionnelle à l'intensité lumineuse, plus complexe à traiter. Le TCS3472 envoie directement des valeurs numériques via I2C.
+Le TCS3472 envoie directement des nombres via I2C, c'est beaucoup plus simple à exploiter.
 
 ---
 
 ## 4. INA219 — Moniteur d'énergie
 
-### Fonctionnement
+### Comment ça marche
 
-L'INA219 mesure en temps réel :
-- La **tension** des batteries (en Volts)
-- Le **courant** consommé (en Ampères)
+L'INA219 mesure la tension et le courant des batteries en temps réel.
 
-Il communique via **I2C** (mêmes fils SDA/SCL que le TCS3472, avec une adresse différente sur le bus).
+Il détecte si y a des valeurs qui sont anormales et si oui ca va arrêter le système pour protéger les composants.
 
-SDA c'est le fil qui transporte les données.
+Lui aussi passe par le bus I2C, donc il partage les mêmes fils SDA et SCL que le TCS3472. Pour que le Pi sache à qui il parle, chaque composant I2C a sa propre adresse sur le bus.
 
-SCL c'est le fil qui synchronise l'envoi des données pour que le Pi et le capteur se comprennent et lisent les données au bon moment.
+### Pourquoi on en a besoin
 
-Pour vérifier qu'il est bien détecté :
-```bash
-i2cdetect -y 1
-```
+Pendant la course les moteurs consomment beaucoup, surtout en accélération. L'INA219 nous permet de surveiller que les batteries tiennent et d'enregistrer les données dans les logs. Ces logs sont ensuite consultables à distance via SSH ce qui correspond à ce qui est demandé dans l'US6.
 
-### Utilisation dans le projet
+---
 
-- Surveiller l'état des batteries 18650 pendant la course
-- Alimenter le **système de logs** : si la tension chute lors d'une accélération, c'est enregistré et consultable à distance via SSH
+## 5. Servomoteur — Direction
 
-### Pourquoi pas l'ACS712 ?
+### Comment ça marche
 
-L'ACS712 produit une sortie **analogique**. Le Raspberry Pi n'a pas d'entrées analogiques natives, il faudrait un convertisseur supplémentaire. L'INA219 en I2C s'intègre directement sans composant extra.
+Le servomoteur c'est ce qui fait tourner les roues avant. Contrairement aux moteurs DC qui tournent en continu, lui se positionne à un angle précis et y reste. C'est ce qui permet de diriger la voiture.
+
+Il est contrôlé par un signal PWM. Le PWM c'est un signal qui s'allume et s'éteint très rapidement — c'est la durée du temps à HIGH qui détermine l'angle voulu (temps cyclique). Un temps court donne un angle d'un côté, un temps long de l'autre, et au milieu la voiture va tout droit.
+
+Le servo est branché sur le driver PCA9685 et pas directement sur le Pi. Le PCA9685 communique en I2C avec le Pi et génère lui-même les signaux PWM à 50 Hz. Ça évite de surcharger le Pi avec cette tâche et ça permet de gérer plusieurs servos en même temps.
+
+---
+
+## 6. Moteurs DC — Propulsion
+
+### Comment ça marche
+
+Les deux moteurs DC font avancer ou reculer la voiture. Leur vitesse se règle aussi avec un signal PWM, même principe que le servo — plus le signal est longtemps à HIGH, plus le moteur tourne vite.
+
+Par contre ils ne sont pas branchés directement sur le Pi. Les broches GPIO du Raspberry sortent du 3,3V et quelques milliampères maximum, c'est beaucoup trop faible pour alimenter un moteur. C'est là que le driver L298N entre en jeu.
+
+### Le pont en H
+
+Le L298N contient ce qu'on appelle un pont en H. C'est un circuit avec 4 interrupteurs électroniques placés en forme de H autour du moteur. Selon quels interrupteurs sont activés, le courant passe dans un sens ou dans l'autre dans le moteur :
+
+S1 + S4 fermés → courant traverse le moteur dans un sens → rotation en avant
+
+S2 + S3 fermés → courant traverse dans l'autre sens → rotation en arrière
+
+S1 + S3 fermés → court-circuit → frein
+
+Tous ouverts → roue libre (le moteur tourne librement par inertie)
+
+Attention : fermer S1 et S2 en même temps (ou S3 + S4) crée un court-circuit catastrophique → c'est ce qu'on appelle le "shoot-through".
+
+Le Pi envoie des signaux logiques simples (IN1, IN2) pour choisir le sens, et un signal PWM sur ENA pour la vitesse. C'est le L298N qui s'occupe d'alimenter les moteurs avec les batteries, le Pi ne fait que donner les ordres.
 
 ---
 
 ## Tableau Récapitulatif
 
-| Capteur | Interface | Broches | Rôle |
-| :--- | :--- | :--- | :--- |
-| **HC-SR04 x3** | GPIO Digital | TRIG + ECHO + VCC + GND | Évitement d'obstacles (seuil 10 cm) |
-| **Capteur IR** | GPIO Digital | Signal + VCC + GND | Détection ligne d'arrivée |
-| **TCS3472** | I2C | SDA + SCL + VCC + GND | Détection feu vert de départ |
-| **INA219** | I2C | SDA + SCL + VCC + GND | Surveillance batterie + logs |
+| Composant | Interface | Rôle |
+| :--- | :--- | :--- |
+| **HC-SR04 x3** | GPIO Digital | Détection d'obstacles (seuil 10 cm) |
+| **Capteur IR** | GPIO Digital | Détection de la ligne d'arrivée |
+| **TCS3472** | I2C | Détection du feu vert de départ |
+| **INA219** | I2C | Surveillance batterie et logs |
+| **Servomoteur** | PWM via PCA9685 (I2C) | Direction des roues avant |
+| **Moteurs DC** | PWM via L298N (pont en H) | Propulsion avant et arrière |
 
 ---
 
 ## Conclusion
 
-Le choix de ces capteurs repose sur un équilibre entre **fiabilité** et **simplicité d'intégration**. Le protocole I2C est utilisé pour les capteurs renvoyant des données complexes (couleur, énergie), tandis que le GPIO direct suffit pour les détections binaires simples (ligne, obstacle). Cette configuration permet de valider tous les critères d'acceptation du cahier de charges, notamment l'évitement d'obstacles à 10 cm minimum et l'arrêt précis sur la ligne d'arrivée.
+Ces composants correspondent bien aux contraintes du projet et sont bien documentés. Le bus I2C regroupe les capteurs qui renvoient des données complexes sur seulement deux fils, et le GPIO gère ce qui est simple comme les détections binaires. Les drivers L298N et PCA9685 protègent le Pi et lui permettent de contrôler des composants puissants avec de simples signaux logiques.
+
+
+## Sources
+
+HC-SR04
+
+https://cdn.sparkfun.com/datasheets/Sensors/Proximity/HCSR04.pdf 
+
+https://www.raspberrypi.com/documentation/ 
+
+Capteur Infrarouge
+
+https://datasheet4u.com/datasheets/TAOS/TCS3472/911411
+
+TCS3472
+
+https://ams.com/documents/20143/36005/TCS3472_DS000390_3-00.pdf
+
+INA219
+
+https://www.ti.com/lit/ds/symlink/ina219.pdf
+
+L298N (pont en H)
+
+https://www.st.com/resource/en/datasheet/l298.pdf
+
+PCA9685
+
+https://www.nxp.com/docs/en/data-sheet/PCA9685.pdf
+
+I2C protocole
+
+https://i2c.info/i2c-bus-specification
