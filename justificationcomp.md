@@ -10,6 +10,8 @@ Ce document explique le fonctionnement des composants qu'on a utilisés dans not
 
 Le HC-SR04 envoie une onde ultrasonique sur un obstacle, ca ricoche et attend qu'elle revienne vers le capteur.
 
+ultrasonique = une brève émission d'ondes sonores à haute fréquence (supérieure à 20 kHz), inaudibles pour l'oreille humaine
+
 Le capteur a 4 broches :
 
 | Broche | Nom | Rôle |
