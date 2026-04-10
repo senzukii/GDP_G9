@@ -12,6 +12,12 @@ Le HC-SR04 envoie une onde ultrasonique sur un obstacle, ca ricoche et attend qu
 
 ultrasonique = une brève émission d'ondes sonores à haute fréquence (supérieure à 20 kHz), inaudibles pour l'oreille humaine
 
+Le HC-SR04 fonctionne avec 5V et le raspberry pi 3,3 V donc un diviseur de tension est necessaire.
+
+Le diviseur de tension consiste à  mettre min 2 resistances en serie et ca va diminuer la tension.
+
+Pas resistances en parallèles car ca va augmenter juste le courant et la tension va pas bouger donc ca va juste être pire.
+
 Le capteur a 4 broches :
 
 | Broche | Nom | Rôle |
@@ -20,6 +26,8 @@ Le capteur a 4 broches :
 | 2 | **TRIG** | On envoie un pulse de 10µs pour déclencher une mesure |
 | 3 | **ECHO** | Reste à HIGH le temps que l'onde fasse l'aller-retour |
 | 4 | **GND** | Masse (0V) |
+
+*Voir image schemaHCSR04.png*
 
 Concrètement, voilà ce qui se passe à chaque mesure :
 HIGH = 1
