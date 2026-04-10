@@ -80,16 +80,16 @@ class TestServomoteur(unittest.TestCase):
     def test_gauche(self):
         servo = Servomoteur()
         servo.gauche()
-        self.assertEqual(servo.lire_angle(), 45)
-        self.faux_pwm.set_pwm.assert_called_with(0, 0, 262)
+        self.assertEqual(servo.lire_angle(), 60)
+        self.faux_pwm.set_pwm.assert_called_with(0, 0, 300)
     
     def test_droite(self):
         servo = Servomoteur()
         
         servo.droite()
         
-        self.assertEqual(servo.lire_angle(), 135)
-        self.faux_pwm.set_pwm.assert_called_with(0, 0, 487)
+        self.assertEqual(servo.lire_angle(), 120)
+        self.faux_pwm.set_pwm.assert_called_with(0, 0, 450)
     
     def test_milieu(self):
         servo = Servomoteur()
@@ -105,25 +105,34 @@ class TestServomoteur(unittest.TestCase):
         
         servo.min()
         
-        self.assertEqual(servo.lire_angle(), 0)
-        self.faux_pwm.set_pwm.assert_called_with(0, 0, 150)
+        self.assertEqual(servo.lire_angle(), 60)
+        self.faux_pwm.set_pwm.assert_called_with(0, 0, 300)
     
     def test_max(self):
         servo = Servomoteur()
         
         servo.max()
         
-        self.assertEqual(servo.lire_angle(), 180)
-        self.faux_pwm.set_pwm.assert_called_with(0, 0, 600)
+        self.assertEqual(servo.lire_angle(), 120)
+        self.faux_pwm.set_pwm.assert_called_with(0, 0, 450)
     
     def test_sequence(self):
         servo = Servomoteur()
         servo.gauche()
-        self.assertEqual(servo.lire_angle(), 45)
+        self.assertEqual(servo.lire_angle(), 60)
         servo.droite()
-        self.assertEqual(servo.lire_angle(), 135)
+        self.assertEqual(servo.lire_angle(), 120)
         servo.milieu()
         self.assertEqual(servo.lire_angle(), 90)
+
+    def test_tourner_limite_braquage(self):
+        servo = Servomoteur()
+
+        servo.tourner(45)
+        self.assertEqual(servo.lire_angle(), 60)
+
+        servo.tourner(135)
+        self.assertEqual(servo.lire_angle(), 120)
 
 if __name__ == '__main__':
     unittest.main(verbosity=2)

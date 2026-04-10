@@ -1,10 +1,10 @@
 try:
-    import Adafruit_PCA9685 #type: ignore
+    import Adafruit_PCA9685  # type: ignore
 except ImportError:
     Adafruit_PCA9685 = None
 
 try:
-    from gpiozero import OutputDevice #type: ignore
+    from gpiozero import OutputDevice  # type: ignore
 except ImportError:
     OutputDevice = None
 
@@ -23,21 +23,21 @@ class MoteurDC:
         self._vitesse = 0
         self._etat = "stop"
         self._moteur = moteur
-        
+
         # Gestion de un ou plusieurs canaux (ex: 5 pour ENA, 4 pour ENB)
         if canal is None:
-            self._canal = [5, 4] 
+            self._canal = [5, 4]
         elif isinstance(canal, int):
             self._canal = [canal]
         else:
             self._canal = canal
-            
+
         self._pwm = pwm
         self._rampe_depart_min = 15
         self._rampe_pas = 5
         self._rampe_palier = 5
 
-        #Configuration matérielle des broches IN1, IN2, IN3, IN4 ---
+        # Configuration matérielle des broches IN1, IN2, IN3, IN4
         self._pins_direction = []
         if pins_direction and OutputDevice is not None:
             for pin in pins_direction:
@@ -45,7 +45,7 @@ class MoteurDC:
 
         # Initialisation du PCA9685
         if self._moteur is None and self._pwm is None and Adafruit_PCA9685:
-            self._pwm = Adafruit_PCA9685.PCA9685(address=adresse_i2c)
+            self._pwm = Adafruit_PCA9685.PCA9685(address=adresse_i2c, busnum=1)
             self._pwm.set_pwm_freq(50)
 
     @property
@@ -114,7 +114,6 @@ class MoteurDC:
 
         if self._pwm is not None:
             duty_cycle = int((vitesse / 100.0) * 4095)
-            # Applique le signal PWM sur chaque canal configuré (ENA et ENB)
             for c in self._canal:
                 self._pwm.set_pwm(c, 0, duty_cycle)
 
@@ -147,14 +146,14 @@ class MoteurDC:
 
     def avancer(self):
         self.set_etat("avant")
-        
+
         # Actionnement des broches L298N pour la MARCHE AVANT
         if len(self._pins_direction) >= 2:
-            self._pins_direction[0].on()   # IN1 = Vrai
-            self._pins_direction[1].off()  # IN2 = Faux
+            self._pins_direction[0].on()
+            self._pins_direction[1].off()
         if len(self._pins_direction) >= 4:
-            self._pins_direction[2].on()   # IN3 = Vrai
-            self._pins_direction[3].off()  # IN4 = Faux
+            self._pins_direction[2].on()
+            self._pins_direction[3].off()
 
         self._rampe_s(self._vitesse)
         if self._moteur is not None and hasattr(self._moteur, "forward"):
@@ -162,14 +161,14 @@ class MoteurDC:
 
     def reculer(self):
         self.set_etat("arriere")
-        
+
         # Actionnement des broches L298N pour la MARCHE ARRIÈRE
         if len(self._pins_direction) >= 2:
-            self._pins_direction[0].off()  # IN1 = Faux
-            self._pins_direction[1].on()   # IN2 = Vrai
+            self._pins_direction[0].off()
+            self._pins_direction[1].on()
         if len(self._pins_direction) >= 4:
-            self._pins_direction[2].off()  # IN3 = Faux
-            self._pins_direction[3].on()   # IN4 = Vrai
+            self._pins_direction[2].off()
+            self._pins_direction[3].on()
 
         self._rampe_s(self._vitesse)
         if self._moteur is not None and hasattr(self._moteur, "backward"):
@@ -177,12 +176,11 @@ class MoteurDC:
 
     def arreter(self):
         self.set_etat("stop")
-        
-        # Extinction complète des broches de direction
+
         for pin in self._pins_direction:
             pin.off()
-            
+
         self._appliquer_vitesse_driver(0)
-        
+
         if self._moteur is not None and hasattr(self._moteur, "stop"):
             self._moteur.stop()

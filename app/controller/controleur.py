@@ -31,6 +31,10 @@ class Controleur:
     def moteur(self):
         return self.get_moteur()
 
+    @moteur.setter
+    def moteur(self, valeur):
+        self.set_moteur(valeur)
+
     @property
     def servo(self):
         return self.get_servo()
