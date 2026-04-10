@@ -31,11 +31,23 @@ LOW = 0
 4. ECHO repasse à LOW quand l'onde revient
 5. On mesure combien de temps ECHO est resté HIGH, et ca calcule la distance 
 
+### Calcul de la distance
+
+La formule utilisée est :
+
+**d = (t × 340) / 2**
+
+- **t** = temps pendant lequel ECHO est resté à HIGH (en secondes)
+- **340** = vitesse du son en m/s à température ambiante
+- **/ 2** parce que l'onde fait l'aller ET le retour, donc on divise par 2 pour avoir juste la distance jusqu'à l'obstacle
+
+Exemple : si ECHO reste HIGH pendant 0.006s → d = (0.006 × 340) / 2 = **1,02 mètre**
+
 ### Pourquoi c'est pas trop précis
 
 Plusieurs choses peuvent fausser la mesure. La température joue sur la vitesse du son, donc si la salle est froide la mesure sera légèrement différente. Si l'obstacle est incliné, l'onde repart dans une autre direction et ne revient pas vers le capteur. Et entre deux mesures il faut attendre environ 60ms, ce qui peut poser problème si la voiture va vite.
 
-C'est pour ca qu'il y a  3 capteurs : un devant, un à gauche, un à droite car si un donne une mauvaise valeur les deux autres compensent.
+C'est pour ca qu'il y a 3 capteurs : un devant, un à gauche, un à droite car si un donne une mauvaise valeur les deux autres compensent.
 
 ---
 
@@ -45,7 +57,7 @@ C'est pour ca qu'il y a  3 capteurs : un devant, un à gauche, un à droite car 
 
 Le capteur infrarouge est un capteur digital qui est divisé en 2 parties : l'emetteur (LED) et le recepteur (photodiode).
 
-Il permet de detecter s'il y a quelque chose devant.
+Il permet de détecter la présence d’un objet en mesurant la lumière infrarouge réfléchie par une surface.
 
 Il y a 3 broches au capteur : 
 
@@ -61,6 +73,12 @@ Le capteur sait si c'est blanc car ca va reflechir beaucoup de lumiere donc beau
 
 Le capteur sait si c'est noir car ca va absorber la lumière donc moins de signal -> LOW
 
+### Pourquoi la lumière réfléchit ou absorbe
+
+C'est de la physique optique basique : une surface claire (blanche) réfléchit la majorité des rayons lumineux, peu importe la longueur d'onde. Une surface sombre (noire) absorbe la lumière et la convertit en chaleur au lieu de la renvoyer. Le capteur IR exploite exactement ce principe.
+
+La réponse est **digitale** : le capteur renvoie uniquement **0 ou 1**, pas une valeur intermédiaire. C'est soit la ligne est détectée, soit elle ne l'est pas.
+
 Ce qui est pratique c'est que la réponse est quasi immédiate, donc la voiture peut s'arrêter précisément à moins de 5 cm de la ligne comme demandé dans le cahier de charges.
 
 ---
@@ -68,7 +86,7 @@ Ce qui est pratique c'est que la réponse est quasi immédiate, donc la voiture 
 ## 3. TCS3472 — Capteur de couleur RGB
 
 ### Comment ça marche
-Le capteur mesure la lumière réfléchie par un objet. Grâce à ses photodiodes avec filtres rouge, vert et bleu, il décompose la lumière en composantes R, G et B. Ces valeurs sont ensuite converties en données numériques et envoyées au Raspberry Pi via le bus I2C. Le Raspberry Pi traite ces données pour déterminer la couleur de l’objet. 
+Le capteur mesure la lumière réfléchie par un objet. Grâce à ses photodiodes avec filtres rouge, vert et bleu, il décompose la lumière en composantes R, G et B. Ces valeurs sont ensuite converties en données numériques et envoyées au Raspberry Pi via le bus I2C. Le Raspberry Pi traite ces données pour déterminer la couleur de l'objet. 
 
 Il y a 7 broches au capteur mais 4 sont les plus importantes : 
 
@@ -77,7 +95,7 @@ Il y a 7 broches au capteur mais 4 sont les plus importantes :
 | 1 | **VIN** | Alimentation +5V |
 | 2 | **GND** | Masse (0V)  |
 | 3 | **SCL** | Le fil qui transporte les données |
-| 4 | **SCA** | Le fil qui synchronise l'échange pour que les données soient lues au bon moment (si pas bien synchro, données éronnées envoyées) |
+| 4 | **SDA** | Le fil qui synchronise l'échange pour que les données soient lues au bon moment (si pas bien synchro, données éronnées envoyées) |
 
 Dans notre projet on s'en sert pour détecter le feu vert de départ. Quand la valeur verte dépasse un certain seuil qu'on définit dans le code, la voiture démarre toute seule.
 
@@ -104,7 +122,7 @@ Le TCS3472 envoie directement des nombres via I2C, c'est beaucoup plus simple à
 
 L'INA219 mesure la tension et le courant des batteries en temps réel.
 
-Il envoie ces valeurs au Raspberry Pi via le bus I2C. Ensuite c’est le programme sur le Raspberry Pi qui peut détecter si les valeurs sont anormales et dans ce cas arrêter le système pour protéger les composants.
+Il envoie ces valeurs au Raspberry Pi via le bus I2C. Ensuite c'est le programme sur le Raspberry Pi qui peut détecter si les valeurs sont anormales et dans ce cas arrêter le système pour protéger les composants.
 
 Lui aussi passe par le bus I2C, donc il partage les mêmes fils SDA et SCL que les autres capteurs. Pour que le Pi sache à qui il parle, chaque composant I2C a sa propre adresse sur le bus.
 
@@ -114,11 +132,14 @@ Il y a plusieurs broches sur le capteur mais les principales sont :
 | :--- | :--- | :--- |
 | 1 | **VIN** | Alimentation +5V |
 | 2 | **GND** | Masse (0V)  |
-| 3 | **SCL** | Le fil d’horloge I2C qui synchronise la communication |
-| 4 | **SCA** | Le fil de données I2C |
+| 3 | **SCL** | Le fil d'horloge I2C qui synchronise la communication |
+| 4 | **SDA** | Le fil de données I2C |
 | 5 | **VIN +** | Entrée mesure tension côté batterie / charge |
 | 6 | **VIN -** | Sortie vers la charge (mesure du courant) |
 
+### Comment il mesure le courant physiquement
+
+Entre VIN+ et VIN- il y a une très petite résistance appelée **résistance shunt**. Quand le courant passe à travers, ça crée une minuscule différence de tension aux deux bornes. L'INA219 mesure cette différence et applique la loi d'Ohm (**I = U / R**) pour calculer le courant exact. C'est invisible pour le reste du circuit car la résistance est tellement petite qu'elle ne perturbe rien.
 
 ### Pourquoi on en a besoin
 
@@ -134,23 +155,23 @@ Le servomoteur c'est ce qui fait tourner les roues avant. Contrairement aux mote
 
 Il est contrôlé par un signal PWM.
 
-Le PWM (Pulse Width Modulation) c'est un signal électrique qui alterne entre ON (HIGH) et OFF (LOW) très rapidement. Ce qui change, c’est la durée du temps où le signal reste à HIGH.
+Le PWM (Pulse Width Modulation) c'est un signal électrique qui alterne entre ON (HIGH) et OFF (LOW) très rapidement. Ce qui change, c'est la durée du temps où le signal reste à HIGH.
 
-Cette durée s'appelle le "temps d’impulsion" et elle permet de définir la position du servo :
+Cette durée s'appelle le "temps d'impulsion" et elle permet de définir la position du servo :
 
 une petite impulsion → angle vers la gauche
 une impulsion moyenne → position au centre
 une grande impulsion → angle vers la droite
 
-Donc plus le signal reste longtemps à l’état HIGH, plus le servo tourne dans un sens.
+Donc plus le signal reste longtemps à l'état HIGH, plus le servo tourne dans un sens.
 
-En général, le servo fonctionne à une fréquence d’environ 50 Hz (20 ms par cycle), et c’est la largeur de l’impulsion (en ms) qui détermine l’angle (souvent entre ~1 ms et ~2 ms).
+En général, le servo fonctionne à une fréquence d'environ 50 Hz (20 ms par cycle), et c'est la largeur de l'impulsion (en ms) qui détermine l'angle (souvent entre ~1 ms et ~2 ms).
 
-=> 1 ms → 0°
+=> 1 ms → 0° (gauche)
 
-   1,5 ms → 90°
+   1,5 ms → 90° (centre)
    
-   2 ms → 180°
+   2 ms → 180° (droite)
 
 Le servo est branché sur le driver PCA9685 et pas directement sur le Pi. Le PCA9685 communique en I2C avec le Pi et génère lui-même les signaux PWM. Ça évite de surcharger le Pi avec cette tâche et ça permet de gérer plusieurs servos en même temps.
 
