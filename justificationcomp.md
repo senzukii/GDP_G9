@@ -25,11 +25,11 @@ Concrètement, voilà ce qui se passe à chaque mesure :
 HIGH = 1
 LOW = 0
 
-1. Le Pi met TRIG à HIGH pendant 10 microsecondes
-2. Le capteur envoie 8 pulses ultrasoniques à 40 kHz
+1. Le RPI va envoyer une impulsion electrique de 10 micro secondes à la broche trig du capteur pour lui dire d'envoyer une onde afin de détecter un obstacle
+2. Le capteur envoie 8 pulses ultrasoniques à 40 kHz et ca rebondit sur l'obstacle
 3. ECHO passe à HIGH dès que l'onde part
 4. ECHO repasse à LOW quand l'onde revient
-5. On mesure combien de temps ECHO est resté HIGH, et on calcule la distance
+5. On mesure combien de temps ECHO est resté HIGH, et ca calcule la distance 
 
 ### Pourquoi c'est pas trop précis
 
@@ -43,7 +43,23 @@ C'est pour ca qu'il y a  3 capteurs : un devant, un à gauche, un à droite car 
 
 ### Comment ça marche
 
-Le capteur envoie de la lumière infrarouge vers le sol et regarde ce qui revient. Sur une surface blanche beaucoup de lumière est réfléchie, le capteur renvoie HIGH. Sur la ligne noire d'arrivée la lumière est absorbée, le capteur renvoie LOW. C'est tout, ya pas de calcul derrière, juste un 0 ou un 1.
+Le capteur infrarouge est un capteur digital qui est divisé en 2 parties : l'emetteur (LED) et le recepteur (photodiode).
+
+Il permet de detecter s'il y a quelque chose devant.
+
+Il y a 3 broches au capteur : 
+
+| Broche | Nom | Rôle |
+| :--- | :--- | :--- |
+| 1 | **VCC** | Alimentation +5V |
+| 2 | **OUT** | De là ca envoie données 0 ou 1 au RPI |
+| 3 | **GND** | Masse (0V) |
+
+L'emetteur envoie de la lumière infrarouge vers le sol et regarde ce qui revient. Sur une surface blanche beaucoup de lumière est réfléchie, le capteur renvoie HIGH. Sur la ligne noire d'arrivée la lumière est absorbée, le capteur renvoie LOW.
+
+Le capteur sait si c'est blanc car ca va reflechir beaucoup de lumiere donc beaucoup de signal -> HIGH
+
+Le capteur sait si c'est noir car ca va absorber la lumière donc moins de signal -> LOW
 
 Ce qui est pratique c'est que la réponse est quasi immédiate, donc la voiture peut s'arrêter précisément à moins de 5 cm de la ligne comme demandé dans le cahier de charges.
 
@@ -52,8 +68,11 @@ Ce qui est pratique c'est que la réponse est quasi immédiate, donc la voiture 
 ## 3. TCS3472 — Capteur de couleur RGB
 
 ### Comment ça marche
+LE capteur capte la lumière  éflléchie par un objet ensuite   grâce  aux photodiodes avec dess filtres rouges,bleusetvertsilcalculelescomposantsr,g,bdecettelumière. EnsuiteiltransformecesdonnéesenimpulsionsélectriquesspuisleseenvoieauraspberrypivialebusdedonnéesI2C.Parlasuite,grâceauxdonnéesenvoyées,leraspeberrydevinelacouleur. 
 
-Ce capteur lit la lumière devant lui et en extrait les valeurs Rouge, Vert et Bleu. Il communique avec le Pi via I2C, un bus qui utilise seulement 2 fils :
+Cecapteurdansnotreprojetfonctionneavec4broches,leVinpourl'alimentaion,legndpourfermerlecircuit,lesdapourlesdonnéesetlesclpoursynchronisationdelacommunication
+
+LebussI2C:c'estlebusdedonnéesqu'onautilisécarilestsuperpratique:ilpermetdedessynchroniserdediscussionsavecplusieurscapteursetn'utiliseque2files(sdapouresdonnéesetsclpourlassynchronisationdesdonnées),ilestsimplecarilestfacicileàimplémenter.Ilestbeaucoupplusutilequelebusuartcarcedernierfonctionneuniquementenpointàpoint.Lepointnégatifdel'I2Cc'estlefaitqu'ilsoitmoinadaptéautrafiquelonguedistance.
 
 | Fil | Rôle |
 | :--- | :--- |
