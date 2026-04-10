@@ -68,18 +68,31 @@ Ce qui est pratique c'est que la réponse est quasi immédiate, donc la voiture 
 ## 3. TCS3472 — Capteur de couleur RGB
 
 ### Comment ça marche
-LE capteur capte la lumière  éflléchie par un objet ensuite   grâce  aux photodiodes avec dess filtres rouges,bleusetvertsilcalculelescomposantsr,g,bdecettelumière. EnsuiteiltransformecesdonnéesenimpulsionsélectriquesspuisleseenvoieauraspberrypivialebusdedonnéesI2C.Parlasuite,grâceauxdonnéesenvoyées,leraspeberrydevinelacouleur. 
+Le capteur mesure la lumière réfléchie par un objet. Grâce à ses photodiodes avec filtres rouge, vert et bleu, il décompose la lumière en composantes R, G et B. Ces valeurs sont ensuite converties en données numériques et envoyées au Raspberry Pi via le bus I2C. Le Raspberry Pi traite ces données pour déterminer la couleur de l’objet. 
 
-Cecapteurdansnotreprojetfonctionneavec4broches,leVinpourl'alimentaion,legndpourfermerlecircuit,lesdapourlesdonnéesetlesclpoursynchronisationdelacommunication
+Il y a 7 broches au capteur mais 4 sont les plus importantes : 
 
-LebussI2C:c'estlebusdedonnéesqu'onautilisécarilestsuperpratique:ilpermetdedessynchroniserdediscussionsavecplusieurscapteursetn'utiliseque2files(sdapouresdonnéesetsclpourlassynchronisationdesdonnées),ilestsimplecarilestfacicileàimplémenter.Ilestbeaucoupplusutilequelebusuartcarcedernierfonctionneuniquementenpointàpoint.Lepointnégatifdel'I2Cc'estlefaitqu'ilsoitmoinadaptéautrafiquelonguedistance.
-
-| Fil | Rôle |
-| :--- | :--- |
-| **SDA** | C'est le fil qui transporte les données |
-| **SCL** | C'est le fil qui synchronise l'échange pour que les données soient lues au bon moment (si pas bien synchro, données éronnées envoyées) |
+| Broche | Nom | Rôle |
+| :--- | :--- | :--- |
+| 1 | **VIN** | Alimentation +5V |
+| 2 | **GND** | Masse (0V)  |
+| 3 | **SCL** | Le fil qui transporte les données |
+| 4 | **SCA** | Le fil qui synchronise l'échange pour que les données soient lues au bon moment (si pas bien synchro, données éronnées envoyées) |
 
 Dans notre projet on s'en sert pour détecter le feu vert de départ. Quand la valeur verte dépasse un certain seuil qu'on définit dans le code, la voiture démarre toute seule.
+
+Le bus I2C est le bus qu'on a utilisé car : 
+
+* Il est bidirectionnel
+
+* Il permet de synchroniser des discussions avec plusieurs capteurs et n'utilise que 2 fils (sda pour les données et scl pour la synchronisation des données)
+
+* Il est simple car il est facile à implémenter.
+
+* Il est beaucoup plus utile que le bus uart car ce dernier fonctionne uniquement en point à point.
+
+Le point négatif de l'I2C c'est le fait qu'il soit moins adapté au traffic longue distance.
+
 
 Le TCS3472 envoie directement des nombres via I2C, c'est beaucoup plus simple à exploiter.
 
@@ -91,9 +104,21 @@ Le TCS3472 envoie directement des nombres via I2C, c'est beaucoup plus simple à
 
 L'INA219 mesure la tension et le courant des batteries en temps réel.
 
-Il détecte si y a des valeurs qui sont anormales et si oui ca va arrêter le système pour protéger les composants.
+Il envoie ces valeurs au Raspberry Pi via le bus I2C. Ensuite c’est le programme sur le Raspberry Pi qui peut détecter si les valeurs sont anormales et dans ce cas arrêter le système pour protéger les composants.
 
-Lui aussi passe par le bus I2C, donc il partage les mêmes fils SDA et SCL que le TCS3472. Pour que le Pi sache à qui il parle, chaque composant I2C a sa propre adresse sur le bus.
+Lui aussi passe par le bus I2C, donc il partage les mêmes fils SDA et SCL que les autres capteurs. Pour que le Pi sache à qui il parle, chaque composant I2C a sa propre adresse sur le bus.
+
+Il y a plusieurs broches sur le capteur mais les principales sont :
+
+| Broche | Nom | Rôle |
+| :--- | :--- | :--- |
+| 1 | **VIN** | Alimentation +5V |
+| 2 | **GND** | Masse (0V)  |
+| 3 | **SCL** | Le fil d’horloge I2C qui synchronise la communication |
+| 4 | **SCA** | Le fil de données I2C |
+| 5 | **VIN +** | Entrée mesure tension côté batterie / charge |
+| 6 | **VIN -** | Sortie vers la charge (mesure du courant) |
+
 
 ### Pourquoi on en a besoin
 
@@ -107,9 +132,27 @@ Pendant la course les moteurs consomment beaucoup, surtout en accélération. L'
 
 Le servomoteur c'est ce qui fait tourner les roues avant. Contrairement aux moteurs DC qui tournent en continu, lui se positionne à un angle précis et y reste. C'est ce qui permet de diriger la voiture.
 
-Il est contrôlé par un signal PWM. Le PWM c'est un signal qui s'allume et s'éteint très rapidement — c'est la durée du temps à HIGH qui détermine l'angle voulu (temps cyclique). Un temps court donne un angle d'un côté, un temps long de l'autre, et au milieu la voiture va tout droit.
+Il est contrôlé par un signal PWM.
 
-Le servo est branché sur le driver PCA9685 et pas directement sur le Pi. Le PCA9685 communique en I2C avec le Pi et génère lui-même les signaux PWM à 50 Hz. Ça évite de surcharger le Pi avec cette tâche et ça permet de gérer plusieurs servos en même temps.
+Le PWM (Pulse Width Modulation) c'est un signal électrique qui alterne entre ON (HIGH) et OFF (LOW) très rapidement. Ce qui change, c’est la durée du temps où le signal reste à HIGH.
+
+Cette durée s'appelle le "temps d’impulsion" et elle permet de définir la position du servo :
+
+une petite impulsion → angle vers la gauche
+une impulsion moyenne → position au centre
+une grande impulsion → angle vers la droite
+
+Donc plus le signal reste longtemps à l’état HIGH, plus le servo tourne dans un sens.
+
+En général, le servo fonctionne à une fréquence d’environ 50 Hz (20 ms par cycle), et c’est la largeur de l’impulsion (en ms) qui détermine l’angle (souvent entre ~1 ms et ~2 ms).
+
+=> 1 ms → 0°
+
+   1,5 ms → 90°
+   
+   2 ms → 180°
+
+Le servo est branché sur le driver PCA9685 et pas directement sur le Pi. Le PCA9685 communique en I2C avec le Pi et génère lui-même les signaux PWM. Ça évite de surcharger le Pi avec cette tâche et ça permet de gérer plusieurs servos en même temps.
 
 ---
 
