@@ -101,7 +101,6 @@ On a la puissance qu'il faut, c'est flexible, et surtout c'est simple à utilise
 
 - https://monraspberry.com/tableau-comparatif-des-raspberry-pi/
 - https://docs.arduino.cc/hardware/uno-rev3/#tech-specs
-- https://fr.wikipedia.org/wiki/ESP32
 - https://www.nvidia.com/fr-fr/autonomous-machines/embedded-systems/jetson-nano/product-development/
 - https://www.moussasoft.com/beaglebone-black-rev-c-ti-am335x-cortex-a8-guide-complet-sur-cette-carte/
 - https://raspberrytips.fr/pourquoi-python-sur-raspberry-pi/
