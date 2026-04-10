@@ -49,6 +49,15 @@ Plusieurs choses peuvent fausser la mesure. La température joue sur la vitesse 
 
 C'est pour ca qu'il y a 3 capteurs : un devant, un à gauche, un à droite car si un donne une mauvaise valeur les deux autres compensent.
 
+
+### Utilité dans notre projet ?
+
+Dans notre projet, les 3 capteurs servent à détecter les obstacles sur le circuit (autres véhicules, parois) et à éviter les collisions. 
+
+La détection se fait à partir de 10 cm minimum. 
+
+L'évitement doit être réalisé en moins de 15 secondes comme demandé dans le cahier de charges.
+
 ---
 
 ## 2. Capteur Infrarouge — Suiveur de ligne
@@ -79,7 +88,13 @@ C'est de la physique optique basique : une surface claire (blanche) réfléchit 
 
 La réponse est **digitale** : le capteur renvoie uniquement **0 ou 1**, pas une valeur intermédiaire. C'est soit la ligne est détectée, soit elle ne l'est pas.
 
-Ce qui est pratique c'est que la réponse est quasi immédiate, donc la voiture peut s'arrêter précisément à moins de 5 cm de la ligne comme demandé dans le cahier de charges.
+### Utilité dans notre projet ?
+
+Dans notre projet, il sert uniquement à détecter la ligne d'arrivée.
+
+Quand le capteur passe au-dessus de la ligne noire, il renvoie LOW et la voiture s'arrête.
+
+L'arrêt doit être précis à moins de 5 cm de la ligne.
 
 ---
 
@@ -99,6 +114,8 @@ Il y a 7 broches au capteur mais 4 sont les plus importantes :
 
 Dans notre projet on s'en sert pour détecter le feu vert de départ. Quand la valeur verte dépasse un certain seuil qu'on définit dans le code, la voiture démarre toute seule.
 
+C'est ce qui correspond au départ automatisé demandé dans le cahier de charges — la voiture démarre sans intervention humaine dès que le feu vert est détecté.
+
 Le bus I2C est le bus qu'on a utilisé car : 
 
 * Il est bidirectionnel
@@ -117,6 +134,8 @@ Le TCS3472 envoie directement des nombres via I2C, c'est beaucoup plus simple à
 ---
 
 ## 4. INA219 — Moniteur d'énergie
+
+Le cahier de charges demande de pouvoir accéder aux logs et diagnostics à distance via SSH. L'INA219 alimente ces logs avec les données de consommation en temps réel.
 
 ### Comment ça marche
 
