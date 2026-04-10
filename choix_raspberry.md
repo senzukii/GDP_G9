@@ -1,5 +1,15 @@
 # Choix techniques pour le projet voiture (US2)
 
+## Besoin pour ce projet : 
+**WiFi** : Indispensable pour l'hotspot et la connexion SSH.
+<br>
+**Multi-tâches** : Primordiale pour faire fonctionner les capteurs ensemble sans avoir à attendre.
+<br>
+**GPiO** : Nombres de borches nécessaires pour connecter et interconneter tout nos capteurs et nos moteurs.
+<br>
+**RAM** : RAM en suffisance pour faire tourner tout nos scripts pythons.
+<br>
+
 ## 1. Comparaison des plateformes
 
 On a fait un tableau pour voir ce qui existe :
@@ -11,9 +21,6 @@ On a fait un tableau pour voir ce qui existe :
 | BeagleBone Black | Oui (Linux / 1 cœur) | 512 MB | Ethernet + 1x USB | 65 | ~60€ |
 | Orange Pi PC | Oui (Linux / 4 cœurs) | 1 GB | Ethernet + 3x USB | 40 | ~30€ |
 
-## 2. Pourquoi on a choisi le Raspberry Pi 3
-
-Les raisons principales, et pour la nécessité du projet sont : le multi tâches, le WiFi, le nombres de GPiO disponibles ainsi que la RAM.
 
 ### Le multitâche, c'est super important
 
