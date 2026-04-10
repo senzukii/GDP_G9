@@ -6,8 +6,14 @@ import threading
 import time
 import logging
 import os
+import warnings
 import importlib
 from datetime import datetime
+
+# On ignore les warnings car c'est uniquement lié au fait que nous avons une version de debian trop récente pour la version de gpiozero utilisée, et que ça ne cause aucun problème de fonctionnement.
+warnings.filterwarnings("ignore")
+os.environ['GPIOZERO_PIN_FACTORY'] = 'lgpio'
+
 
 try:
     GPIO = importlib.import_module("RPi.GPIO")
