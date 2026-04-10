@@ -72,5 +72,5 @@ class CapteurInfrarouge:
         if valeur not in [0, 1]:
             raise ValueError(f"Valeur invalide reçue : {valeur}")
 
-        # Chez toi : 1 = noir, 0 = blanc
+        # 1 = noir, 0 = blanc
         return valeur == 1
