@@ -6,7 +6,13 @@ import threading
 import time
 import logging
 import os
+import importlib
 from datetime import datetime
+
+try:
+    GPIO = importlib.import_module("RPi.GPIO")
+except Exception:
+    GPIO = None
 
 
 class Routine:
@@ -158,6 +164,15 @@ class Routine:
     def _arreter_threads(self):
         self.__threads_actifs = False
 
+    def _cleanup_gpio(self):
+        if GPIO is None:
+            return
+        try:
+            GPIO.cleanup()
+            self._log("INFO", "GPIO cleanup effectué")
+        except Exception as e:
+            self._log("WARN", f"GPIO cleanup impossible: {e}")
+
     def menu(self):
         try:
             while True:
@@ -202,6 +217,7 @@ class Routine:
                 self.__controleur.moteur.arreter()
             except Exception:
                 pass
+            self._cleanup_gpio()
 
     def test_moteur(self):
         print("\n--- Test Moteur ---")
