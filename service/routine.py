@@ -1,24 +1,11 @@
 from app.controller.controleur import Controleur
 from app.model.actionneurs.moteur import MoteurDC
 from app.model.capteurs.capteur_ultrason import HCSR04
+from logger import setup_logger
 
 import threading
 import time
-import logging
-import os
-import warnings
-import importlib
 from datetime import datetime
-
-# On ignore les warnings car c'est uniquement lié au fait que nous avons une version de debian trop récente pour la version de gpiozero utilisée, et que ça ne cause aucun problème de fonctionnement.
-warnings.filterwarnings("ignore")
-os.environ['GPIOZERO_PIN_FACTORY'] = 'lgpio'
-
-
-try:
-    GPIO = importlib.import_module("RPi.GPIO")
-except Exception:
-    GPIO = None
 
 
 class Routine:
@@ -63,21 +50,7 @@ class Routine:
         ctrl.set_capteur_us_droit(self._creer_capteur_ultrason(26, 19))
 
     def _init_logger(self):
-        self.__logger = logging.getLogger("routine")
-        self.__logger.setLevel(logging.DEBUG)
-
-        if not self.__logger.handlers:
-            console = logging.StreamHandler()
-            console.setLevel(logging.INFO)
-            console.setFormatter(logging.Formatter("%(asctime)s | %(levelname)s | %(message)s"))
-            self.__logger.addHandler(console)
-
-            os.makedirs(os.path.join(os.path.dirname(__file__), "..", "reports"), exist_ok=True)
-            chemin_log = os.path.join(os.path.dirname(__file__), "..", "reports", "routine.log")
-            fichier = logging.FileHandler(chemin_log, encoding="utf-8")
-            fichier.setLevel(logging.DEBUG)
-            fichier.setFormatter(logging.Formatter("%(asctime)s | %(levelname)-8s | %(message)s"))
-            self.__logger.addHandler(fichier)
+        self.__logger = setup_logger("ROUTINE")
 
     def _log(self, niveau, message):
         self.__logs.append(f"{datetime.now().strftime('%H:%M:%S')} | {niveau} | {message}")
@@ -170,60 +143,40 @@ class Routine:
     def _arreter_threads(self):
         self.__threads_actifs = False
 
-    def _cleanup_gpio(self):
-        if GPIO is None:
-            return
+    def lancer_routine(self):
+        print("\n=== LANCEMENT AUTOMATIQUE DE LA ROUTINE ===")
+        self._log("INFO", "Début routine automatique")
+
+        tests = [
+            self.test_moteur,
+            self.test_servo,
+            self.test_capteur_ir,
+            self.test_capteurs_ultrason,
+            self.test_demarrage_vert,
+            self.test_servo_ultrasons_threade,
+            self.identifier_capteurs_ultrason
+        ]
+
         try:
-            GPIO.cleanup()
-            self._log("INFO", "GPIO cleanup effectué")
-        except Exception as e:
-            self._log("WARN", f"GPIO cleanup impossible: {e}")
+            for test in tests:
+                try:
+                    test()
+                except Exception as e:
+                    print(f"ERREUR : {e}")
+                    self._log("ERREUR", f"Erreur pendant {test.__name__} : {e}")
 
-    def menu(self):
-        try:
-            while True:
-                print("\n=== MENU ROUTINE DE TEST ===")
-                print("1. Test moteur (avancer / reculer)")
-                print("2. Test servomoteur (gauche / droite / centre)")
-                print("3. Test capteur infrarouge (ligne noire)")
-                print("4. Test capteurs ultrason (distances)")
-                print("5. Test capteur RGB (feu vert)")
-                print("6. Test servo + ultrasons (threads actifs)")
-                print("7. Tout tester")
-                print("8. Identifier les capteurs ultrasons")
-                print("0. Quitter")
+                time.sleep(1)
 
-                choix = input("\nChoix : ").strip()
-                tests = {
-                    "1": self.test_moteur,
-                    "2": self.test_servo,
-                    "3": self.test_capteur_ir,
-                    "4": self.test_capteurs_ultrason,
-                    "5": self.test_demarrage_vert,
-                    "6": self.test_servo_ultrasons_threade,
-                    "7": self.tout_tester,
-                    "8": self.identifier_capteurs_ultrason,
-                }
-
-                if choix == "0":
-                    break
-                elif choix in tests:
-                    try:
-                        tests[choix]()
-                    except Exception as e:
-                        print(f"ERREUR : {e}")
-                        self._log("ERREUR", f"Erreur pendant test {choix}: {e}")
-                else:
-                    print("Choix invalide.")
         except KeyboardInterrupt:
             print("\nArrêt demandé par l'utilisateur.")
+            self._log("WARN", "Routine interrompue manuellement")
+
         finally:
             self._arreter_threads()
             try:
                 self.__controleur.moteur.arreter()
             except Exception:
                 pass
-            self._cleanup_gpio()
 
     def test_moteur(self):
         print("\n--- Test Moteur ---")
@@ -278,10 +231,7 @@ class Routine:
                 with self.__distances_lock:
                     d = dict(self.__distances)
 
-                print(
-                    f"avant={d['avant']} | gauche={d['gauche']} | droite={d['droite']}",
-                    end="\r"
-                )
+                print(f"avant={d['avant']} | gauche={d['gauche']} | droite={d['droite']}", end="\r")
                 time.sleep(1)
             print()
         finally:
@@ -398,4 +348,4 @@ class Routine:
 
 if __name__ == "__main__":
     routine = Routine()
-    routine.menu()
+    routine.lancer_routine()
