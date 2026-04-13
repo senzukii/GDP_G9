@@ -162,7 +162,7 @@ Il y a plusieurs broches sur le capteur mais les principales sont :
 | 3 | **SCL** | Le fil d'horloge I2C qui synchronise la communication |
 | 4 | **SDA** | Le fil de données I2C |
 | 5 | **VIN +** | Entrée mesure tension côté batterie / charge |
-| 6 | **VIN -** | Sortie vers la charge (mesure du courant) |
+| 6 | **VIN -** | Sortie vers la charge côté moteur |
 
 ### Comment il mesure le courant physiquement
 
