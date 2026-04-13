@@ -27,8 +27,6 @@ Le capteur a 4 broches :
 | 3 | **ECHO** | Reste à HIGH le temps que l'onde fasse l'aller-retour |
 | 4 | **GND** | Masse (0V) |
 
-*Voir image schemaHCSR04.png*
-
 Le capteur HCSR04 est aussi composé de ce qu'on appelle transducteur ultrasonique ; ce sont les 2 ronds présents sur le capteur :
 
 * Emetteur (celui qui envoie la onde)
