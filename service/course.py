@@ -5,8 +5,6 @@ from logger import setup_logger
 
 import threading
 import time
-import logging
-import os
 import atexit
 import signal
 
