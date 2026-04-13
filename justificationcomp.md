@@ -29,6 +29,12 @@ Le capteur a 4 broches :
 
 *Voir image schemaHCSR04.png*
 
+Le capteur HCSR04 est aussi composé de ce qu'on appelle transducteur ultrasonique ; ce sont les 2 ronds présents sur le capteur :
+
+* Emetteur (celui qui envoie la onde)
+
+* Recepteur (celui qui recoit la onde)
+  
 Concrètement, voilà ce qui se passe à chaque mesure :
 HIGH = 1
 LOW = 0
@@ -84,23 +90,19 @@ Il y a 3 broches au capteur :
 | 2 | **OUT** | De là ca envoie données 0 ou 1 au RPI |
 | 3 | **GND** | Masse (0V) |
 
-L'emetteur envoie de la lumière infrarouge vers le sol et regarde ce qui revient. Sur une surface blanche beaucoup de lumière est réfléchie, le capteur renvoie HIGH. Sur la ligne noire d'arrivée la lumière est absorbée, le capteur renvoie LOW.
-
-Le capteur sait si c'est blanc car ca va reflechir beaucoup de lumiere donc beaucoup de signal -> HIGH
-
-Le capteur sait si c'est noir car ca va absorber la lumière donc moins de signal -> LOW
+L'emetteur envoie de la lumière infrarouge vers le sol et regarde ce qui revient. Sur une surface blanche beaucoup de lumière est réfléchie, le capteur renvoie 0 (LOW). Sur la ligne noire d'arrivée la lumière est absorbée, le capteur renvoie 1 (HIGH).
 
 ### Pourquoi la lumière réfléchit ou absorbe
 
 C'est de la physique optique basique : une surface claire (blanche) réfléchit la majorité des rayons lumineux, peu importe la longueur d'onde. Une surface sombre (noire) absorbe la lumière et la convertit en chaleur au lieu de la renvoyer. Le capteur IR exploite exactement ce principe.
 
-La réponse est **digitale** : le capteur renvoie uniquement **0 ou 1**, pas une valeur intermédiaire. C'est soit la ligne est détectée, soit elle ne l'est pas.
+La réponse est **digitale** : le capteur renvoie uniquement **0 ou 1**. C'est soit la ligne est détectée, soit elle ne l'est pas.
 
 ### Utilité dans notre projet ?
 
 Dans notre projet, il sert uniquement à détecter la ligne d'arrivée.
 
-Quand le capteur passe au-dessus de la ligne noire, il renvoie LOW et la voiture s'arrête.
+Quand le capteur passe au-dessus de la ligne noire, il renvoie 1 (HIGH) et la voiture s'arrête.
 
 L'arrêt doit être précis à moins de 5 cm de la ligne.
 
@@ -117,12 +119,10 @@ Il y a 7 broches au capteur mais 4 sont les plus importantes :
 | :--- | :--- | :--- |
 | 1 | **VIN** | Alimentation +5V |
 | 2 | **GND** | Masse (0V)  |
-| 3 | **SCL** | Le fil qui transporte les données |
-| 4 | **SDA** | Le fil qui synchronise l'échange pour que les données soient lues au bon moment (si pas bien synchro, données éronnées envoyées) |
+| 3 | **SCL** | Le fil qui synchronise l'échange pour que les données soient lues au bon moment (si pas bien synchro, données éronnées envoyées) |
+| 4 | **SDA** | Le fil qui transporte les données |
 
 Dans notre projet on s'en sert pour détecter le feu vert de départ. Quand la valeur verte dépasse un certain seuil qu'on définit dans le code, la voiture démarre toute seule.
-
-C'est ce qui correspond au départ automatisé demandé dans le cahier de charges — la voiture démarre sans intervention humaine dès que le feu vert est détecté.
 
 Le bus I2C est le bus qu'on a utilisé car : 
 
@@ -143,7 +143,7 @@ Le TCS3472 envoie directement des nombres via I2C, c'est beaucoup plus simple à
 
 ## 4. INA219 — Moniteur d'énergie
 
-Le cahier de charges demande de pouvoir accéder aux logs et diagnostics à distance via SSH. L'INA219 alimente ces logs avec les données de consommation en temps réel.
+On a mis en place le système de logs avec Python logging, consultable via SSH. Le câblage de l'INA219 est prévu sur le schéma mais son intégration dans les logs n'a pas été implémentée par manque de temps.
 
 ### Comment ça marche
 
@@ -170,7 +170,7 @@ Entre VIN+ et VIN- il y a une très petite résistance appelée **résistance sh
 
 ### Pourquoi on en a besoin
 
-Pendant la course les moteurs consomment beaucoup, surtout en accélération. L'INA219 nous permet de surveiller que les batteries tiennent et d'enregistrer les données dans les logs. Ces logs sont ensuite consultables à distance via SSH ce qui correspond à ce qui est demandé dans l'US6.
+Pendant la course les moteurs consomment beaucoup, surtout en accélération. L'INA219 nous permet de surveiller que les batteries tiennent. Son câblage est prévu sur le schéma mais son intégration logicielle n'a pas été implémentée par manque de temps. Le système de logs reste fonctionnel via Python logging et consultable à distance via SSH pour tout le reste — erreurs capteurs, état du robot, etc. — ce qui correspond à ce qui est demandé dans l'US6.
 
 ---
 
@@ -194,11 +194,31 @@ Donc plus le signal reste longtemps à l'état HIGH, plus le servo tourne dans u
 
 En général, le servo fonctionne à une fréquence d'environ 50 Hz (20 ms par cycle), et c'est la largeur de l'impulsion (en ms) qui détermine l'angle (souvent entre ~1 ms et ~2 ms).
 
+En théorie :
+
 => 1 ms → 0° (gauche)
 
    1,5 ms → 90° (centre)
    
    2 ms → 180° (droite)
+
+Dans notre code :
+
+=> 1 ms → 45° (gauche)
+
+   1,5 ms → 90° (centre)
+   
+   2 ms → 135° (droite)
+
+Mais aussi dans notre code, la conversion se fait avec une interpolation linéaire entre des valeurs calibrées :
+
+45° → pulse 190
+
+90° → pulse 285
+
+135° → pulse 380
+
+Ces valeurs ont été calibrées manuellement en testant sur le robot.
 
 Le servo est branché sur le driver PCA9685 et pas directement sur le Pi. Le PCA9685 communique en I2C avec le Pi et génère lui-même les signaux PWM. Ça évite de surcharger le Pi avec cette tâche et ça permet de gérer plusieurs servos en même temps.
 
@@ -214,19 +234,31 @@ Par contre ils ne sont pas branchés directement sur le Pi. Les broches GPIO du 
 
 ### Le pont en H
 
-Le L298N contient ce qu'on appelle un pont en H. C'est un circuit avec 4 interrupteurs électroniques placés en forme de H autour du moteur. Selon quels interrupteurs sont activés, le courant passe dans un sens ou dans l'autre dans le moteur :
+Le L298N contient ce qu'on appelle un pont en H. C'est un circuit avec 4 interrupteurs électroniques internes (S1, S2, S3, S4) placés en forme de H autour du moteur.
 
-S1 + S4 fermés → courant traverse le moteur dans un sens → rotation en avant
+Le L298N expose deux types de broches de contrôle :
 
-S2 + S3 fermés → courant traverse dans l'autre sens → rotation en arrière
+**Les broches de direction (IN1, IN2, IN3, IN4)** — elles contrôlent dans quel sens tourne chaque moteur. Le L298N gère 2 moteurs donc il y a 2 paires :
+- IN1 + IN2 contrôlent le moteur gauche
+- IN3 + IN4 contrôlent le moteur droit
 
-S1 + S3 fermés → court-circuit → frein
+Quand le Pi met IN1 à HIGH, le L298N ferme S1 en interne automatiquement. Selon quels interrupteurs sont activés, le courant passe dans un sens ou dans l'autre :
 
-Tous ouverts → roue libre (le moteur tourne librement par inertie)
+- IN1=HIGH, IN2=LOW → S1+S4 fermés → courant traverse dans un sens → **rotation en avant**
+- IN1=LOW, IN2=HIGH → S2+S3 fermés → courant traverse dans l'autre sens → **rotation en arrière**
+- Tous ouverts → **roue libre** (le moteur tourne librement par inertie)
 
-Attention : fermer S1 et S2 en même temps (ou S3 + S4) crée un court-circuit catastrophique → c'est ce qu'on appelle le "shoot-through".
+IN3/IN4 fonctionnent exactement pareil pour le moteur droit.
 
-Le Pi envoie des signaux logiques simples (IN1, IN2) pour choisir le sens, et un signal PWM sur ENA pour la vitesse. C'est le L298N qui s'occupe d'alimenter les moteurs avec les batteries, le Pi ne fait que donner les ordres.
+**Les broches de vitesse (ENA, ENB)** — elles reçoivent un signal PWM et contrôlent la vitesse de chaque moteur :
+- ENA → vitesse du moteur gauche
+- ENB → vitesse du moteur droit
+
+Plus le signal PWM reste longtemps à HIGH, plus le moteur tourne vite.
+
+Attention : fermer S1 et S2 en même temps (ou S3+S4) crée un court-circuit catastrophique, c'est ce qu'on appelle le **"shoot-through"**. Le L298N protège contre ça automatiquement en interne.
+
+Dans notre implémentation, l'arrêt coupe simplement tous les signaux — c'est une roue libre. Le frein électrique n'a pas été implémenté.
 
 ---
 
@@ -279,3 +311,5 @@ https://www.nxp.com/docs/en/data-sheet/PCA9685.pdf
 I2C protocole
 
 https://i2c.info/i2c-bus-specification
+
+GrokAI
